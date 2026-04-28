@@ -11,6 +11,7 @@ export function AdminDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [requests, setRequests] = useState<PropertyRequest[]>([]);
   const [brokers, setBrokers] = useState<any[]>([]);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     refresh();
@@ -38,15 +39,27 @@ export function AdminDashboard() {
   }
 
   async function approve(id: string) {
-    await api(`/property-requests/${id}/approve`, { method: "POST" });
-    await refresh();
+    setMessage("");
+    try {
+      await api(`/property-requests/${id}/approve`, { method: "POST", body: JSON.stringify({}) });
+      setMessage("Pedido aprovado e imóvel publicado no catálogo.");
+      await refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erro ao aprovar pedido");
+    }
   }
 
   async function reject(id: string) {
     const reason = window.prompt("Motivo da recusa");
     if (!reason) return;
-    await api(`/property-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
-    await refresh();
+    setMessage("");
+    try {
+      await api(`/property-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
+      setMessage("Pedido recusado.");
+      await refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erro ao recusar pedido");
+    }
   }
 
   return (
@@ -54,6 +67,7 @@ export function AdminDashboard() {
       <div>
         <p className="font-semibold text-primary">Área administrativa</p>
         <h1 className="text-3xl font-bold">Dashboard da imobiliária</h1>
+        {message && <p className="mt-2 text-sm font-medium text-primary">{message}</p>}
       </div>
 
       <section className="grid gap-4 md:grid-cols-3">
