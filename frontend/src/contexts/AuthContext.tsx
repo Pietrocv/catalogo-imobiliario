@@ -7,6 +7,7 @@ type AuthContextValue = {
   token: string | null;
   login: (email: string, password: string) => Promise<User>;
   register: (payload: RegisterPayload) => Promise<User>;
+  setSession: (token: string, user: User) => void;
   logout: () => void;
 };
 
@@ -16,6 +17,9 @@ type RegisterPayload = {
   password: string;
   role: UserRole;
   realEstateId?: string;
+  phone?: string;
+  creci?: string;
+  avatarUrl?: string;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -66,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }
 
-  const value = useMemo(() => ({ user, token, login, register, logout }), [user, token]);
+  const value = useMemo(() => ({ user, token, login, register, setSession: persist, logout }), [user, token]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

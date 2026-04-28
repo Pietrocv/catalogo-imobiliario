@@ -14,8 +14,9 @@ export const registerSchema = z.object({
   password: z.string().min(6),
   role: roleSchema,
   realEstateId: z.string().uuid().optional(),
-  creci: z.string().optional(),
-  phone: z.string().optional()
+  creci: z.string().trim().optional(),
+  phone: z.string().trim().optional(),
+  avatarUrl: z.string().url().optional().or(z.literal(""))
 });
 
 export const loginSchema = z.object({
@@ -59,12 +60,15 @@ export const propertyRequestPayloadSchema = propertyPayloadSchema.omit({
 });
 
 export const propertyFiltersSchema = z.object({
+  search: z.string().trim().optional(),
   city: citySchema.optional(),
   type: typeSchema.optional(),
   purpose: purposeSchema.optional(),
   minPrice: z.coerce.number().optional(),
   maxPrice: z.coerce.number().optional(),
   minBedrooms: z.coerce.number().int().optional(),
+  minBathrooms: z.coerce.number().int().optional(),
+  minParkingSpaces: z.coerce.number().int().optional(),
   acceptsFinancing: z
     .enum(["true", "false"])
     .transform((value) => value === "true")

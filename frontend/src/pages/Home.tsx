@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { PropertyCard } from "../components/PropertyCard";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -11,6 +11,7 @@ import { cities } from "../utils/labels";
 export function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   useEffect(() => {
     load();
@@ -22,6 +23,19 @@ export function Home() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
+    const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
+    load(`?${params.toString()}`);
+  }
+
+  function setFilter(name: string, value: string) {
+    setFilters((current) => ({ ...current, [name]: value }));
+  }
+
+  function clearAdvanced() {
+    setFilters(({ city, type, purpose }) => ({ city, type, purpose }));
+  }
+
+  function reloadWithCurrentFilters() {
     const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
     load(`?${params.toString()}`);
   }
@@ -44,34 +58,82 @@ export function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-8">
-        <form onSubmit={submit} className="grid gap-3 rounded-lg border border-border bg-white p-4 md:grid-cols-4 lg:grid-cols-8">
-          <Select onChange={(e) => setFilters({ ...filters, city: e.target.value })} defaultValue="">
-            <option value="">Cidade</option>
-            {cities.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </Select>
-          <Select onChange={(e) => setFilters({ ...filters, type: e.target.value })} defaultValue="">
-            <option value="">Tipo</option>
-            <option value="NOVO">Novo</option>
-            <option value="USADO">Usado</option>
-            <option value="PLANTA">Na planta</option>
-          </Select>
-          <Select onChange={(e) => setFilters({ ...filters, purpose: e.target.value })} defaultValue="">
-            <option value="">Finalidade</option>
-            <option value="VENDA">Venda</option>
-            <option value="ALUGUEL">Aluguel</option>
-          </Select>
-          <Input placeholder="Preço mín." type="number" onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })} />
-          <Input placeholder="Preço máx." type="number" onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })} />
-          <Input placeholder="Quartos mín." type="number" onChange={(e) => setFilters({ ...filters, minBedrooms: e.target.value })} />
-          <Select onChange={(e) => setFilters({ ...filters, acceptsFinancing: e.target.value })} defaultValue="">
-            <option value="">Financiamento</option>
-            <option value="true">Aceita</option>
-          </Select>
-          <Button className="gap-2"><Search className="h-4 w-4" />Filtrar</Button>
+        <form onSubmit={submit} className="rounded-lg border border-border bg-white p-4">
+          <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto_auto]">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                placeholder="Buscar por título, bairro ou endereço"
+                value={filters.search ?? ""}
+                onChange={(event) => setFilter("search", event.target.value)}
+              />
+            </div>
+            <Select onChange={(event) => setFilter("city", event.target.value)} value={filters.city ?? ""}>
+              <option value="">Cidade</option>
+              {cities.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+            <Select onChange={(event) => setFilter("type", event.target.value)} value={filters.type ?? ""}>
+              <option value="">Tipo</option>
+              <option value="NOVO">Novo</option>
+              <option value="USADO">Usado</option>
+              <option value="PLANTA">Na planta</option>
+            </Select>
+            <Select onChange={(event) => setFilter("purpose", event.target.value)} value={filters.purpose ?? ""}>
+              <option value="">Finalidade</option>
+              <option value="VENDA">Venda</option>
+              <option value="ALUGUEL">Aluguel</option>
+            </Select>
+            <Button type="button" variant="outline" className="gap-2" onClick={() => setAdvancedOpen((open) => !open)}>
+              <SlidersHorizontal className="h-4 w-4" />
+              Mais filtros
+            </Button>
+            <Button className="gap-2">
+              <Search className="h-4 w-4" />
+              Filtrar
+            </Button>
+          </div>
+
+          {advancedOpen && (
+            <div className="mt-4 rounded-md border border-border bg-background p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-bold">Filtros avançados</h2>
+                <Button type="button" variant="ghost" className="h-8 gap-2 px-2" onClick={() => setAdvancedOpen(false)}>
+                  <X className="h-4 w-4" />
+                  Fechar
+                </Button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Input placeholder="Preço mín." type="number" value={filters.minPrice ?? ""} onChange={(event) => setFilter("minPrice", event.target.value)} />
+                <Input placeholder="Preço máx." type="number" value={filters.maxPrice ?? ""} onChange={(event) => setFilter("maxPrice", event.target.value)} />
+                <Input placeholder="Quartos mín." type="number" value={filters.minBedrooms ?? ""} onChange={(event) => setFilter("minBedrooms", event.target.value)} />
+                <Input placeholder="Banheiros mín." type="number" value={filters.minBathrooms ?? ""} onChange={(event) => setFilter("minBathrooms", event.target.value)} />
+                <Input placeholder="Vagas mín." type="number" value={filters.minParkingSpaces ?? ""} onChange={(event) => setFilter("minParkingSpaces", event.target.value)} />
+                <Select value={filters.acceptsFinancing ?? ""} onChange={(event) => setFilter("acceptsFinancing", event.target.value)}>
+                  <option value="">Financiamento</option>
+                  <option value="true">Aceita financiamento</option>
+                  <option value="false">Não aceita</option>
+                </Select>
+                <Select value={filters.featured ?? ""} onChange={(event) => setFilter("featured", event.target.value)}>
+                  <option value="">Destaque</option>
+                  <option value="true">Somente destaques</option>
+                </Select>
+                <Button type="button" variant="outline" onClick={clearAdvanced}>
+                  Limpar avançados
+                </Button>
+              </div>
+            </div>
+          )}
         </form>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => <PropertyCard key={property.id} property={property} />)}
+          {properties.map((property) => (
+            <PropertyCard key={property.id} property={property} onChanged={reloadWithCurrentFilters} />
+          ))}
         </div>
       </section>
     </div>

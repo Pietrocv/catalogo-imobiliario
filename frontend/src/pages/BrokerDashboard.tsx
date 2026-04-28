@@ -37,7 +37,7 @@ export function BrokerDashboard() {
       <Card>
         <CardContent>
           <h2 className="mb-4 text-xl font-bold">Enviar pedido de cadastro</h2>
-          <PropertyForm submitLabel="Enviar pedido" onSubmit={createRequest} />
+          <PropertyForm submitLabel="Enviar pedido" imageFolder="property-requests" onSubmit={createRequest} />
         </CardContent>
       </Card>
 

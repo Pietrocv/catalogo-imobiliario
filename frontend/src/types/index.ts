@@ -21,6 +21,12 @@ export type User = {
   role: UserRole;
   realEstateId: string | null;
   realEstate?: RealEstate;
+  brokerProfile?: {
+    creci?: string | null;
+    phone?: string | null;
+    avatarUrl?: string | null;
+    linkedAt?: string;
+  } | null;
 };
 
 export type Property = {
@@ -52,4 +58,24 @@ export type PropertyRequest = Omit<Property, "id" | "status" | "images" | "realE
   images: { id: string; url: string }[];
   realEstate: RealEstate;
   brokerProfile: { user: User };
+};
+
+export type LinkedBroker = {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  avatarUrl: string | null;
+  creci: string | null;
+  linkedAt: string;
+  propertiesCount: number;
+  requestsCount: number;
+};
+
+export type BrokerInvite = {
+  token: string;
+  inviteUrl?: string;
+  expiresAt: string;
+  realEstate: RealEstate;
 };

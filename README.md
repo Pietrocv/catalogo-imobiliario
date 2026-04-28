@@ -23,6 +23,16 @@ Serviços:
 
 O container do backend executa `prisma migrate deploy` e o seed automaticamente ao iniciar.
 
+Para habilitar upload de imagens pelo Cloudinary, crie `backend/.env` a partir de `backend/.env.example` e preencha:
+
+```env
+CLOUDINARY_CLOUD_NAME="seu-cloud-name"
+CLOUDINARY_API_KEY="sua-api-key"
+CLOUDINARY_API_SECRET="seu-api-secret"
+```
+
+O arquivo `.env` é ignorado pelo Git. Não envie o `API_SECRET` para o repositório.
+
 ## Acessos iniciais
 
 Todos os usuários do seed usam a senha `123456`.
@@ -61,8 +71,21 @@ Imobiliárias:
 Corretores:
 
 - `GET /brokers`
+- `GET /real-estates/brokers`
 - `POST /brokers/link`
+- `POST /brokers/accept-invite`
 - `GET /brokers/me`
+
+Convites de corretores:
+
+- `POST /broker-invites`
+- `GET /broker-invites/:token`
+- `POST /broker-invites/:token/accept`
+
+Uploads:
+
+- `POST /uploads/signature`
+- `POST /broker-invites/:token/upload-signature`
 
 Imóveis:
 
@@ -86,6 +109,9 @@ Pedidos de imóveis:
 - Visitante lista imóveis disponíveis e filtra por cidade, tipo, finalidade, preço, quartos e financiamento.
 - Visitante abre detalhes do imóvel com galeria, atributos, imobiliária e corretor responsável.
 - Admin faz login, vê dashboard, cria imóvel diretamente, altera status e aprova ou recusa pedidos.
+- Admin acessa `/admin/corretores` para visualizar corretores vinculados com telefone, CRECI, avatar, data de vínculo e contadores.
+- Admin gera link de convite no dashboard para corretores se cadastrarem pela página `/invite/:token`.
+- Admin e corretores enviam imagens diretamente pelo formulário; o backend assina o upload e o Cloudinary hospeda os arquivos.
 - Corretor faz login, cria pedido de imóvel e acompanha o status e motivo de recusa.
 - Ao aprovar um pedido, o backend cria automaticamente o imóvel no catálogo público.
 

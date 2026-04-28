@@ -15,3 +15,11 @@ export function money(value: number) {
     currency: "BRL"
   }).format(value);
 }
+
+export function dateBR(value: string | Date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(new Date(value));
+}

@@ -32,12 +32,45 @@ async function main() {
 
   const brokers = await Promise.all(
     [
-      { name: "Carla Souza", email: "carla@imperio.com", creci: "CRECI-GO 12345", phone: "(61) 98888-1111" },
-      { name: "Rafael Lima", email: "rafael@imperio.com", creci: "CRECI-GO 67890", phone: "(61) 97777-2222" }
+      {
+        name: "Carla Souza",
+        email: "carla@imperio.com",
+        creci: "CRECI-GO 12345",
+        phone: "(61) 98888-1111",
+        avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
+        linkedAt: new Date("2026-04-28T09:00:00.000Z")
+      },
+      {
+        name: "Rafael Lima",
+        email: "rafael@imperio.com",
+        creci: null,
+        phone: "(61) 97777-2222",
+        avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+        linkedAt: new Date("2026-04-28T10:00:00.000Z")
+      }
     ].map((broker) =>
       prisma.user.upsert({
         where: { email: broker.email },
-        update: {},
+        update: {
+          realEstateId: realEstate.id,
+          brokerProfile: {
+            upsert: {
+              create: {
+                realEstateId: realEstate.id,
+                creci: broker.creci,
+                phone: broker.phone,
+                avatarUrl: broker.avatarUrl,
+                linkedAt: broker.linkedAt
+              },
+              update: {
+                creci: broker.creci,
+                phone: broker.phone,
+                avatarUrl: broker.avatarUrl,
+                linkedAt: broker.linkedAt
+              }
+            }
+          }
+        },
         create: {
           name: broker.name,
           email: broker.email,
@@ -48,7 +81,9 @@ async function main() {
             create: {
               realEstateId: realEstate.id,
               creci: broker.creci,
-              phone: broker.phone
+              phone: broker.phone,
+              avatarUrl: broker.avatarUrl,
+              linkedAt: broker.linkedAt
             }
           }
         },

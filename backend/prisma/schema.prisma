@@ -53,6 +53,7 @@ model User {
   realEstateId   String?
   realEstate     RealEstate?    @relation(fields: [realEstateId], references: [id])
   brokerProfile  BrokerProfile?
+  createdInvites BrokerInvite[]
   properties     Property[]     @relation("BrokerProperties")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -69,14 +70,29 @@ model RealEstate {
   brokers     BrokerProfile[]
   properties  Property[]
   requests    PropertyRequest[]
+  invites     BrokerInvite[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+}
+
+model BrokerInvite {
+  id           String     @id @default(uuid())
+  token        String     @unique
+  realEstateId String
+  realEstate   RealEstate @relation(fields: [realEstateId], references: [id])
+  createdById  String
+  createdBy    User       @relation(fields: [createdById], references: [id])
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime   @default(now())
 }
 
 model BrokerProfile {
   id           String            @id @default(uuid())
   creci        String?
   phone        String?
+  avatarUrl    String?
+  linkedAt     DateTime          @default(now())
   userId       String            @unique
   user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   realEstateId String

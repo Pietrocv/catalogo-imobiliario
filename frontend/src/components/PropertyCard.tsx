@@ -1,11 +1,23 @@
-import { Bath, BedDouble, Car, MapPin } from "lucide-react";
+import { Bath, BedDouble, Car, Edit, MapPin, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { api } from "../services/api";
 import type { Property } from "../types";
 import { cityLabels, money } from "../utils/labels";
 import { Card, CardContent } from "./ui/card";
+import { Button } from "./ui/button";
 
-export function PropertyCard({ property }: { property: Property }) {
+export function PropertyCard({ property, onChanged }: { property: Property; onChanged?: () => void }) {
+  const { user } = useAuth();
   const image = property.images[0]?.url ?? "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80";
+  const isAdmin = user?.role === "ADMIN_IMOBILIARIA";
+
+  async function inactivateProperty() {
+    const confirmed = window.confirm("Deseja inativar este imóvel? Ele deixará de aparecer no catálogo público.");
+    if (!confirmed) return;
+    await api(`/properties/${property.id}`, { method: "DELETE" });
+    onChanged?.();
+  }
 
   return (
     <Card className="overflow-hidden">
@@ -28,6 +40,21 @@ export function PropertyCard({ property }: { property: Property }) {
         <Link to={`/properties/${property.id}`} className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary text-sm font-semibold text-white">
           Ver detalhes
         </Link>
+        {isAdmin && (
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to={`/admin/imoveis/${property.id}/editar`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border text-sm font-semibold transition hover:bg-muted"
+            >
+              <Edit className="h-4 w-4" />
+              Editar
+            </Link>
+            <Button type="button" variant="outline" className="gap-2 text-red-700 hover:text-red-800" onClick={inactivateProperty}>
+              <Trash2 className="h-4 w-4" />
+              Inativar
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

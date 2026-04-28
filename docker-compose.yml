@@ -20,6 +20,9 @@ services:
     build:
       context: ./backend
     container_name: catalogo-backend
+    env_file:
+      - path: ./backend/.env
+        required: false
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/catalogo_imobiliario?schema=public
       JWT_SECRET: catalogo-imobiliario-secret

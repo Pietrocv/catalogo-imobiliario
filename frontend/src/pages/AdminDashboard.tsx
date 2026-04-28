@@ -1,17 +1,40 @@
 import { useEffect, useState } from "react";
-import { PropertyForm } from "../components/PropertyForm";
+import { Building2, ClipboardList, Home, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { PropertyAdPreview } from "../components/PropertyAdPreview";
+import { PropertyForm, type PropertyFormDraft } from "../components/PropertyForm";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import { Select } from "../components/ui/select";
 import { api } from "../services/api";
-import type { Property, PropertyRequest, PropertyStatus } from "../types";
-import { cityLabels, money } from "../utils/labels";
+import type { BrokerInvite, Property, PropertyRequest } from "../types";
+import { dateBR } from "../utils/labels";
+
+const initialPreview: PropertyFormDraft = {
+  title: "",
+  description: "",
+  type: "NOVO",
+  purpose: "VENDA",
+  status: "DISPONIVEL",
+  price: "",
+  city: "VALPARAISO",
+  neighborhood: "",
+  address: "",
+  areaM2: "",
+  bedrooms: "2",
+  bathrooms: "1",
+  parkingSpaces: "1",
+  acceptsFinancing: true,
+  featured: false,
+  images: []
+};
 
 export function AdminDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [requests, setRequests] = useState<PropertyRequest[]>([]);
   const [brokers, setBrokers] = useState<any[]>([]);
   const [message, setMessage] = useState("");
+  const [invite, setInvite] = useState<BrokerInvite | null>(null);
+  const [preview, setPreview] = useState<PropertyFormDraft>(initialPreview);
 
   useEffect(() => {
     refresh();
@@ -21,7 +44,7 @@ export function AdminDashboard() {
     const [propertiesData, requestsData, brokersData] = await Promise.all([
       api<Property[]>("/properties"),
       api<PropertyRequest[]>("/property-requests"),
-      api<any[]>("/brokers")
+      api<any[]>("/real-estates/brokers")
     ]);
     setProperties(propertiesData);
     setRequests(requestsData);
@@ -33,32 +56,25 @@ export function AdminDashboard() {
     await refresh();
   }
 
-  async function updateStatus(id: string, status: PropertyStatus) {
-    await api(`/properties/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
-    await refresh();
-  }
-
-  async function approve(id: string) {
+  async function generateInvite() {
     setMessage("");
     try {
-      await api(`/property-requests/${id}/approve`, { method: "POST", body: JSON.stringify({}) });
-      setMessage("Pedido aprovado e imóvel publicado no catálogo.");
-      await refresh();
+      const data = await api<BrokerInvite>("/broker-invites", {
+        method: "POST",
+        body: JSON.stringify({ expiresInDays: 7 })
+      });
+      setInvite(data);
+      setMessage("Link de convite gerado.");
+      if (data.inviteUrl && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(data.inviteUrl);
+          setMessage("Link de convite gerado e copiado.");
+        } catch {
+          setMessage("Link de convite gerado.");
+        }
+      }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao aprovar pedido");
-    }
-  }
-
-  async function reject(id: string) {
-    const reason = window.prompt("Motivo da recusa");
-    if (!reason) return;
-    setMessage("");
-    try {
-      await api(`/property-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
-      setMessage("Pedido recusado.");
-      await refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao recusar pedido");
+      setMessage(error instanceof Error ? error.message : "Erro ao gerar convite");
     }
   }
 
@@ -71,69 +87,78 @@ export function AdminDashboard() {
       </div>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Metric label="Imóveis" value={properties.length} />
-        <Metric label="Pedidos pendentes" value={requests.filter((request) => request.status === "PENDENTE").length} />
-        <Metric label="Corretores" value={brokers.length} />
+        <MetricCard
+          to="/admin/imoveis"
+          icon={<Home className="h-5 w-5" />}
+          label="Imóveis cadastrados"
+          value={properties.length}
+          helper="Clique para visualizar a lista de imóveis"
+        />
+        <MetricCard
+          to="/admin/pedidos"
+          icon={<ClipboardList className="h-5 w-5" />}
+          label="Pedidos pendentes"
+          value={requests.filter((request) => request.status === "PENDENTE").length}
+          helper="Clique para revisar solicitações"
+        />
+        <MetricCard
+          to="/admin/corretores"
+          icon={<Users className="h-5 w-5" />}
+          label="Corretores vinculados"
+          value={brokers.length}
+          helper="Clique para visualizar a lista de corretores"
+        />
       </section>
 
       <Card>
-        <CardContent>
-          <h2 className="mb-4 text-xl font-bold">Cadastrar imóvel diretamente</h2>
-          <PropertyForm submitLabel="Cadastrar imóvel" showStatus onSubmit={createProperty} />
+        <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="text-xl font-bold">Convite para corretor</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Gere um link para o corretor se cadastrar já vinculado à sua imobiliária.</p>
+            {invite?.inviteUrl && (
+              <div className="mt-3 rounded-md bg-muted p-3">
+                <p className="break-all text-sm font-semibold text-primary">{invite.inviteUrl}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Expira em {dateBR(invite.expiresAt)}</p>
+              </div>
+            )}
+          </div>
+          <Button onClick={generateInvite}>Gerar link de convite</Button>
         </CardContent>
       </Card>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <Card>
           <CardContent>
-            <h2 className="mb-4 text-xl font-bold">Pedidos de cadastro</h2>
-            <div className="space-y-3">
-              {requests.map((request) => (
-                <div key={request.id} className="rounded-md border border-border p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold">{request.title}</p>
-                      <p className="text-sm text-muted-foreground">{request.status} · {cityLabels[request.city]} · {money(request.price)}</p>
-                      {request.rejectionReason && <p className="mt-1 text-sm text-red-600">{request.rejectionReason}</p>}
-                    </div>
-                    {request.status === "PENDENTE" && (
-                      <div className="flex gap-2">
-                        <Button onClick={() => approve(request.id)}>Aprovar</Button>
-                        <Button variant="outline" onClick={() => reject(request.id)}>Recusar</Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="mb-5 flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-bold">Cadastrar imóvel diretamente</h2>
             </div>
+            <PropertyForm submitLabel="Cadastrar imóvel" showStatus onDraftChange={setPreview} onSubmit={createProperty} />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent>
-            <h2 className="mb-4 text-xl font-bold">Imóveis administrativos</h2>
-            <div className="space-y-3">
-              {properties.map((property) => (
-                <div key={property.id} className="rounded-md border border-border p-4">
-                  <p className="font-semibold">{property.title}</p>
-                  <p className="text-sm text-muted-foreground">{cityLabels[property.city]} · {money(property.price)}</p>
-                  <Select className="mt-3 max-w-48" value={property.status} onChange={(e) => updateStatus(property.id, e.target.value as PropertyStatus)}>
-                    <option value="DISPONIVEL">Disponível</option>
-                    <option value="RESERVADO">Reservado</option>
-                    <option value="VENDIDO">Vendido</option>
-                    <option value="ALUGADO">Alugado</option>
-                    <option value="INATIVO">Inativo</option>
-                  </Select>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div>
+          <p className="mb-3 text-sm font-semibold text-muted-foreground">Prévia do anúncio</p>
+          <PropertyAdPreview draft={preview} />
+        </div>
       </section>
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
-  return <Card><CardContent><p className="text-sm text-muted-foreground">{label}</p><p className="text-3xl font-bold">{value}</p></CardContent></Card>;
+function MetricCard({ to, icon, label, value, helper }: { to: string; icon: React.ReactNode; label: string; value: number; helper: string }) {
+  return (
+    <Link to={to}>
+      <Card className="h-full transition hover:border-primary hover:shadow-md">
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <span className="text-primary">{icon}</span>
+          </div>
+          <p className="mt-3 text-3xl font-bold">{value}</p>
+          <p className="mt-2 text-sm text-primary">{helper}</p>
+        </CardContent>
+      </Card>
+    </Link>
+  );
 }

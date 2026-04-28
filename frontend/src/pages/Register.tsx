@@ -12,7 +12,16 @@ export function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [realEstates, setRealEstates] = useState<RealEstate[]>([]);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "CORRETOR" as UserRole, realEstateId: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "CORRETOR" as UserRole,
+    realEstateId: "",
+    phone: "",
+    creci: "",
+    avatarUrl: ""
+  });
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -22,7 +31,12 @@ export function Register() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     try {
-      const user = await register({ ...form, realEstateId: form.realEstateId || undefined });
+      const user = await register({
+        ...form,
+        realEstateId: form.realEstateId || undefined,
+        creci: form.creci || undefined,
+        avatarUrl: form.avatarUrl || undefined
+      });
       navigate(user.role === "ADMIN_IMOBILIARIA" ? "/admin" : "/broker");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao cadastrar");
@@ -46,6 +60,13 @@ export function Register() {
               <option value="">Selecione a imobiliária</option>
               {realEstates.map((realEstate) => <option key={realEstate.id} value={realEstate.id}>{realEstate.name}</option>)}
             </Select>
+            {form.role === "CORRETOR" && (
+              <>
+                <Input placeholder="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+                <Input placeholder="CRECI (opcional)" value={form.creci} onChange={(e) => setForm({ ...form, creci: e.target.value })} />
+                <Input placeholder="URL do avatar (opcional)" value={form.avatarUrl} onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })} />
+              </>
+            )}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <Button className="w-full">Cadastrar</Button>
           </form>

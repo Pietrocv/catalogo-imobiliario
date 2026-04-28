@@ -12,6 +12,9 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
     if (data.role === "CORRETOR" && !data.realEstateId) {
       throw new AppError("Corretores devem estar vinculados a uma imobiliária");
     }
+    if (data.role === "CORRETOR" && !data.phone) {
+      throw new AppError("Telefone é obrigatório para corretores");
+    }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
     const user = await prisma.user.create({
@@ -23,7 +26,14 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
         realEstateId: data.realEstateId,
         brokerProfile:
           data.role === "CORRETOR" && data.realEstateId
-            ? { create: { realEstateId: data.realEstateId, creci: data.creci, phone: data.phone } }
+            ? {
+                create: {
+                  realEstateId: data.realEstateId,
+                  creci: data.creci || null,
+                  phone: data.phone,
+                  avatarUrl: data.avatarUrl || null
+                }
+              }
             : undefined
       },
       include: { brokerProfile: true }

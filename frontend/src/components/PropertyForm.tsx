@@ -1,5 +1,6 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Button } from "./ui/button";
+import { ImageUploader } from "./ImageUploader";
 import { Input } from "./ui/input";
 import { Select } from "./ui/select";
 import { Textarea } from "./ui/textarea";
@@ -9,9 +10,32 @@ type Props = {
   onSubmit: (payload: any) => Promise<void>;
   submitLabel: string;
   showStatus?: boolean;
+  imageFolder?: "properties" | "property-requests";
+  initialValues?: Partial<PropertyFormDraft>;
+  resetOnSubmit?: boolean;
+  onDraftChange?: (draft: PropertyFormDraft) => void;
 };
 
-const initial = {
+export type PropertyFormDraft = {
+  title: string;
+  description: string;
+  type: string;
+  purpose: string;
+  status: string;
+  price: string;
+  city: string;
+  neighborhood: string;
+  address: string;
+  areaM2: string;
+  bedrooms: string;
+  bathrooms: string;
+  parkingSpaces: string;
+  acceptsFinancing: boolean;
+  featured: boolean;
+  images: string[];
+};
+
+const initial: PropertyFormDraft = {
   title: "",
   description: "",
   type: "NOVO",
@@ -27,13 +51,23 @@ const initial = {
   parkingSpaces: "1",
   acceptsFinancing: true,
   featured: false,
-  images: ""
+  images: [] as string[]
 };
 
-export function PropertyForm({ onSubmit, submitLabel, showStatus }: Props) {
+export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = "properties", initialValues, resetOnSubmit = true, onDraftChange }: Props) {
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (initialValues) {
+      setForm((current) => ({ ...current, ...initialValues }));
+    }
+  }, [initialValues]);
+
+  useEffect(() => {
+    onDraftChange?.(form);
+  }, [form, onDraftChange]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -48,11 +82,10 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus }: Props) {
         bathrooms: Number(form.bathrooms),
         parkingSpaces: Number(form.parkingSpaces),
         images: form.images
-          .split("\n")
-          .map((url) => url.trim())
-          .filter(Boolean)
       });
-      setForm(initial);
+      if (resetOnSubmit) {
+        setForm(initial);
+      }
       setMessage("Salvo com sucesso.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Erro ao salvar");
@@ -61,7 +94,7 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus }: Props) {
     }
   }
 
-  function setValue(name: string, value: string | boolean) {
+  function setValue(name: string, value: string | boolean | string[]) {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
@@ -113,7 +146,10 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus }: Props) {
         </label>
       </div>
       <Textarea className="md:col-span-2" placeholder="Descrição" value={form.description} onChange={(e) => setValue("description", e.target.value)} required />
-      <Textarea className="md:col-span-2" placeholder="URLs das imagens, uma por linha" value={form.images} onChange={(e) => setValue("images", e.target.value)} />
+      <div className="md:col-span-2">
+        <p className="mb-2 text-sm font-semibold">Imagens do imóvel</p>
+        <ImageUploader folder={imageFolder} value={form.images} onChange={(urls) => setValue("images", urls)} />
+      </div>
       <div className="md:col-span-2 flex items-center gap-3">
         <Button disabled={loading}>{loading ? "Salvando..." : submitLabel}</Button>
         {message && <span className="text-sm text-muted-foreground">{message}</span>}

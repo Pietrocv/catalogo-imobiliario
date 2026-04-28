@@ -52,6 +52,8 @@ export function PropertyDetails() {
               <div className="border-t border-border pt-4">
                 <p className="font-semibold">{property.broker.name}</p>
                 <p className="text-sm text-muted-foreground">{property.broker.email}</p>
+                {property.broker.brokerProfile?.phone && <p className="text-sm text-muted-foreground">{property.broker.brokerProfile.phone}</p>}
+                <p className="text-sm text-muted-foreground">{property.broker.brokerProfile?.creci || "CRECI não informado"}</p>
               </div>
             )}
           </CardContent>

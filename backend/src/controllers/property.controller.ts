@@ -7,18 +7,24 @@ import { propertyFiltersSchema, propertyPayloadSchema } from "../utils/schemas.j
 const propertyInclude = {
   images: true,
   realEstate: true,
-  broker: true
+  broker: {
+    include: {
+      brokerProfile: true
+    }
+  }
 };
 
 export async function listProperties(request: FastifyRequest, reply: FastifyReply) {
   try {
     const filters = propertyFiltersSchema.parse(request.query);
     const where: Prisma.PropertyWhereInput = {
-      status: request.user?.role ? undefined : "DISPONIVEL",
+      status: request.user?.role ? { not: "INATIVO" } : "DISPONIVEL",
       city: filters.city,
       type: filters.type,
       purpose: filters.purpose,
       bedrooms: filters.minBedrooms ? { gte: filters.minBedrooms } : undefined,
+      bathrooms: filters.minBathrooms ? { gte: filters.minBathrooms } : undefined,
+      parkingSpaces: filters.minParkingSpaces ? { gte: filters.minParkingSpaces } : undefined,
       acceptsFinancing: filters.acceptsFinancing,
       featured: filters.featured,
       price:
@@ -29,6 +35,15 @@ export async function listProperties(request: FastifyRequest, reply: FastifyRepl
             }
           : undefined
     };
+
+    if (filters.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { description: { contains: filters.search, mode: "insensitive" } },
+        { neighborhood: { contains: filters.search, mode: "insensitive" } },
+        { address: { contains: filters.search, mode: "insensitive" } }
+      ];
+    }
 
     if (request.user?.role === "ADMIN_IMOBILIARIA" || request.user?.role === "CORRETOR") {
       where.realEstateId = request.user.realEstateId ?? undefined;
