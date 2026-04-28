@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN_IMOBILIARIA
+  CORRETOR
+}
+
+enum PropertyType {
+  NOVO
+  USADO
+  PLANTA
+}
+
+enum PropertyPurpose {
+  VENDA
+  ALUGUEL
+}
+
+enum PropertyStatus {
+  DISPONIVEL
+  RESERVADO
+  VENDIDO
+  ALUGADO
+  INATIVO
+}
+
+enum PropertyCity {
+  VALPARAISO
+  LUZIANIA
+  CIDADE_OCIDENTAL
+  JARDIM_INGA
+}
+
+enum PropertyRequestStatus {
+  PENDENTE
+  APROVADO
+  RECUSADO
+}
+
+model User {
+  id             String         @id @default(uuid())
+  name           String
+  email          String         @unique
+  passwordHash   String
+  role           UserRole
+  realEstateId   String?
+  realEstate     RealEstate?    @relation(fields: [realEstateId], references: [id])
+  brokerProfile  BrokerProfile?
+  properties     Property[]     @relation("BrokerProperties")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model RealEstate {
+  id          String            @id @default(uuid())
+  name        String
+  cnpj        String            @unique
+  phone       String
+  email       String            @unique
+  mainCity    PropertyCity
+  users       User[]
+  brokers     BrokerProfile[]
+  properties  Property[]
+  requests    PropertyRequest[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model BrokerProfile {
+  id           String            @id @default(uuid())
+  creci        String?
+  phone        String?
+  userId       String            @unique
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  realEstateId String
+  realEstate   RealEstate        @relation(fields: [realEstateId], references: [id])
+  requests     PropertyRequest[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model Property {
+  id                String           @id @default(uuid())
+  title             String
+  description       String
+  type              PropertyType
+  purpose           PropertyPurpose
+  status            PropertyStatus   @default(DISPONIVEL)
+  price             Decimal          @db.Decimal(12, 2)
+  city              PropertyCity
+  neighborhood      String
+  address           String
+  areaM2            Decimal          @db.Decimal(10, 2)
+  bedrooms          Int
+  bathrooms         Int
+  parkingSpaces     Int
+  acceptsFinancing  Boolean          @default(false)
+  featured          Boolean          @default(false)
+  realEstateId      String
+  realEstate        RealEstate       @relation(fields: [realEstateId], references: [id])
+  brokerId          String?
+  broker            User?            @relation("BrokerProperties", fields: [brokerId], references: [id])
+  sourceRequestId   String?          @unique
+  sourceRequest     PropertyRequest? @relation(fields: [sourceRequestId], references: [id])
+  images            PropertyImage[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  url        String
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model PropertyRequest {
+  id               String                 @id @default(uuid())
+  title            String
+  description      String
+  type             PropertyType
+  purpose          PropertyPurpose
+  status           PropertyRequestStatus  @default(PENDENTE)
+  rejectionReason  String?
+  price            Decimal                @db.Decimal(12, 2)
+  city             PropertyCity
+  neighborhood     String
+  address          String
+  areaM2           Decimal                @db.Decimal(10, 2)
+  bedrooms         Int
+  bathrooms        Int
+  parkingSpaces    Int
+  acceptsFinancing Boolean                @default(false)
+  featured         Boolean                @default(false)
+  brokerProfileId  String
+  brokerProfile    BrokerProfile          @relation(fields: [brokerProfileId], references: [id])
+  realEstateId     String
+  realEstate       RealEstate             @relation(fields: [realEstateId], references: [id])
+  property         Property?
+  images           PropertyRequestImage[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+}
+
+model PropertyRequestImage {
+  id                String          @id @default(uuid())
+  url               String
+  propertyRequestId String
+  propertyRequest   PropertyRequest @relation(fields: [propertyRequestId], references: [id], onDelete: Cascade)
+  createdAt         DateTime        @default(now())
+}

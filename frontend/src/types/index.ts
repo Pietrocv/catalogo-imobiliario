@@ -1,0 +1,55 @@
+export type UserRole = "ADMIN_IMOBILIARIA" | "CORRETOR";
+export type PropertyCity = "VALPARAISO" | "LUZIANIA" | "CIDADE_OCIDENTAL" | "JARDIM_INGA";
+export type PropertyType = "NOVO" | "USADO" | "PLANTA";
+export type PropertyPurpose = "VENDA" | "ALUGUEL";
+export type PropertyStatus = "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "ALUGADO" | "INATIVO";
+export type PropertyRequestStatus = "PENDENTE" | "APROVADO" | "RECUSADO";
+
+export type RealEstate = {
+  id: string;
+  name: string;
+  cnpj: string;
+  phone: string;
+  email: string;
+  mainCity: PropertyCity;
+};
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  realEstateId: string | null;
+  realEstate?: RealEstate;
+};
+
+export type Property = {
+  id: string;
+  title: string;
+  description: string;
+  type: PropertyType;
+  purpose: PropertyPurpose;
+  status: PropertyStatus;
+  price: number;
+  city: PropertyCity;
+  neighborhood: string;
+  address: string;
+  areaM2: number;
+  bedrooms: number;
+  bathrooms: number;
+  parkingSpaces: number;
+  acceptsFinancing: boolean;
+  featured: boolean;
+  images: { id: string; url: string }[];
+  realEstate: RealEstate;
+  broker?: User | null;
+};
+
+export type PropertyRequest = Omit<Property, "id" | "status" | "images" | "realEstate" | "broker"> & {
+  id: string;
+  status: PropertyRequestStatus;
+  rejectionReason?: string | null;
+  images: { id: string; url: string }[];
+  realEstate: RealEstate;
+  brokerProfile: { user: User };
+};

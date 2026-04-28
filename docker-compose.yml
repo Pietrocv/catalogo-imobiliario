@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: catalogo-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: catalogo_imobiliario
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d catalogo_imobiliario"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: catalogo-backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/catalogo_imobiliario?schema=public
+      JWT_SECRET: catalogo-imobiliario-secret
+      PORT: 3333
+      FRONTEND_URL: http://localhost:5173
+    ports:
+      - "3333:3333"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: catalogo-frontend
+    environment:
+      VITE_API_URL: http://localhost:3333
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
