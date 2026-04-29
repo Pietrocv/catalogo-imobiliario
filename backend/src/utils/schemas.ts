@@ -61,7 +61,8 @@ export const propertyRequestPayloadSchema = propertyPayloadSchema.omit({
   status: true,
   realEstateId: true,
   brokerId: true,
-  soldById: true
+  soldById: true,
+  featured: true
 });
 
 export const propertyFiltersSchema = z.object({

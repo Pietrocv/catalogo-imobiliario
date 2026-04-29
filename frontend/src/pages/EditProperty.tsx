@@ -102,6 +102,7 @@ export function EditProperty() {
           <PropertyForm
             submitLabel="Salvar alterações"
             showStatus
+            allowFeatured
             brokerOptions={brokers}
             initialValues={initialValues}
             resetOnSubmit={false}

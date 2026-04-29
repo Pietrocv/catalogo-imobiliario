@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import imperioLogo from "../assets/imperiologo.jpg";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "./ui/button";
+import { WhatsAppContact } from "./WhatsAppContact";
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -65,6 +66,7 @@ export function Layout() {
       <main>
         <Outlet />
       </main>
+      <WhatsAppContact />
     </div>
   );
 }

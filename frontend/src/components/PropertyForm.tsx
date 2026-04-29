@@ -15,6 +15,7 @@ type Props = {
   resetOnSubmit?: boolean;
   onDraftChange?: (draft: PropertyFormDraft) => void;
   brokerOptions?: { userId: string; name: string }[];
+  allowFeatured?: boolean;
 };
 
 export type PropertyFormDraft = {
@@ -61,7 +62,7 @@ const initial: PropertyFormDraft = {
   images: [] as string[]
 };
 
-export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = "properties", initialValues, resetOnSubmit = true, onDraftChange, brokerOptions = [] }: Props) {
+export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = "properties", initialValues, resetOnSubmit = true, onDraftChange, brokerOptions = [], allowFeatured = false }: Props) {
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -89,6 +90,7 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
         bathrooms: Number(form.bathrooms),
         parkingSpaces: Number(form.parkingSpaces),
         availableUnits: parseUnits(form.availableUnits),
+        featured: allowFeatured ? form.featured : false,
         images: form.images
       });
       if (resetOnSubmit) {
@@ -165,10 +167,12 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
           <input type="checkbox" checked={form.acceptsFinancing} onChange={(e) => setValue("acceptsFinancing", e.target.checked)} />
           Aceita financiamento
         </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={form.featured} onChange={(e) => setValue("featured", e.target.checked)} />
-          Destaque
-        </label>
+        {allowFeatured && (
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.featured} onChange={(e) => setValue("featured", e.target.checked)} />
+            Destaque
+          </label>
+        )}
       </div>
       <Textarea className="md:col-span-2" placeholder="Descrição" value={form.description} onChange={(e) => setValue("description", e.target.value)} required />
       <div className="md:col-span-2">

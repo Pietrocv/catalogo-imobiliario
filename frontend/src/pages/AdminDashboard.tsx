@@ -136,7 +136,7 @@ export function AdminDashboard() {
               <Building2 className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-bold">Cadastrar imóvel diretamente</h2>
             </div>
-            <PropertyForm submitLabel="Cadastrar imóvel" showStatus brokerOptions={brokers} onDraftChange={setPreview} onSubmit={createProperty} />
+            <PropertyForm submitLabel="Cadastrar imóvel" showStatus allowFeatured brokerOptions={brokers} onDraftChange={setPreview} onSubmit={createProperty} />
           </CardContent>
         </Card>
 
