@@ -37,6 +37,7 @@ export type Property = {
   purpose: PropertyPurpose;
   status: PropertyStatus;
   price: number;
+  commissionPrice: number;
   city: PropertyCity;
   neighborhood: string;
   address: string;
@@ -77,6 +78,52 @@ export type PropertyRequest = Omit<Property, "id" | "status" | "images" | "realE
   images: { id: string; url: string }[];
   realEstate: RealEstate;
   brokerProfile: { user: User };
+};
+
+export type Agio = {
+  id: string;
+  title: string;
+  description: string;
+  status: PropertyStatus;
+  price: number;
+  commissionPrice: number;
+  installmentAmount: number;
+  outstandingBalance: number;
+  roomInfo: string;
+  areaM2: number;
+  plannedFurniture: boolean;
+  hasDebtsOrProcurations: boolean;
+  debtNotes?: string | null;
+  firstOwner: boolean;
+  paidInstallments: number;
+  city: PropertyCity;
+  neighborhood: string;
+  address: string;
+  mapUrl?: string | null;
+  condominiumName: string;
+  images: { id: string; url: string }[];
+  realEstate: RealEstate;
+  broker?: User | null;
+  brokerId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SalesControl = {
+  id: string;
+  clientCpf: string;
+  propertyName: string;
+  clientName: string;
+  builder?: string | null;
+  saleDate: string;
+  cca?: string | null;
+  signatureDate?: string | null;
+  dispatcherPaid: boolean;
+  paymentMethod?: string | null;
+  notes?: string | null;
+  realEstateId: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LinkedBroker = {

@@ -109,6 +109,7 @@ export async function approvePropertyRequest(request: FastifyRequest<{ Params: {
           purpose: current.purpose,
           status: "DISPONIVEL",
           price: current.price,
+          commissionPrice: current.commissionPrice,
           city: current.city,
           neighborhood: current.neighborhood,
           address: current.address,
@@ -187,6 +188,7 @@ function formatRequest(propertyRequest: any) {
   return {
     ...propertyRequest,
     price: Number(propertyRequest.price),
+    commissionPrice: Number(propertyRequest.commissionPrice ?? 0),
     areaM2: Number(propertyRequest.areaM2),
     brokerProfile: propertyRequest.brokerProfile
       ? {

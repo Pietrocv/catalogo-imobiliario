@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { uploadImage } from "../services/uploads";
 
 type Props = {
-  folder: "properties" | "property-requests" | "brokers";
+  folder: "properties" | "property-requests" | "brokers" | "agios";
   value: string[];
   onChange: (urls: string[]) => void;
   inviteToken?: string;

@@ -27,6 +27,8 @@ export function Layout() {
 
           <nav className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#ECECEC]">
             <MenuLink to="/">Imóveis</MenuLink>
+            <MenuLink to="/agios">Agios</MenuLink>
+            {user?.role === "ADMIN_IMOBILIARIA" && <MenuLink to="/planilhas">Planilhas</MenuLink>}
             {dashboardLink && (
               <MenuLink to={dashboardLink}>
                 <LayoutDashboard className="h-4 w-4" />

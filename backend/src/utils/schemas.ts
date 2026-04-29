@@ -47,6 +47,7 @@ export const propertyPayloadSchema = z.object({
   purpose: purposeSchema,
   status: propertyStatusSchema.default("DISPONIVEL"),
   price: z.coerce.number().positive(),
+  commissionPrice: z.coerce.number().min(0).default(0),
   city: citySchema,
   neighborhood: z.string().min(2),
   address: z.string().min(3),
@@ -92,10 +93,55 @@ export const propertyFiltersSchema = z.object({
     .optional()
 });
 
+export const agioPayloadSchema = z.object({
+  title: z.string().min(3),
+  description: z.string().min(10),
+  status: propertyStatusSchema.default("DISPONIVEL"),
+  price: z.coerce.number().positive(),
+  commissionPrice: z.coerce.number().min(0).default(0),
+  installmentAmount: z.coerce.number().positive(),
+  outstandingBalance: z.coerce.number().min(0),
+  roomInfo: z.string().min(3),
+  areaM2: z.coerce.number().positive(),
+  plannedFurniture: z.coerce.boolean().default(false),
+  hasDebtsOrProcurations: z.coerce.boolean().default(false),
+  debtNotes: z.string().trim().optional().or(z.literal("")),
+  firstOwner: z.coerce.boolean().default(false),
+  paidInstallments: z.coerce.number().int().min(0),
+  city: citySchema,
+  neighborhood: z.string().min(2),
+  address: z.string().min(3),
+  mapUrl: z.string().url().optional().or(z.literal("")),
+  condominiumName: z.string().min(2),
+  brokerId: z.string().uuid().optional(),
+  realEstateId: z.string().uuid().optional(),
+  images: imageUrlsSchema
+});
+
+export const agioFiltersSchema = z.object({
+  search: z.string().trim().optional(),
+  city: citySchema.optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional()
+});
+
 export const rejectRequestSchema = z.object({
   reason: z.string().min(3)
 });
 
 export const sellPropertyUnitSchema = z.object({
   soldById: z.string().uuid().or(z.literal("EXTERNAL_PARTNER"))
+});
+
+export const salesControlSchema = z.object({
+  clientCpf: z.string().trim().min(11),
+  propertyName: z.string().trim().min(2),
+  clientName: z.string().trim().min(2),
+  builder: z.string().trim().optional().or(z.literal("")),
+  saleDate: z.coerce.date(),
+  cca: z.string().trim().optional().or(z.literal("")),
+  signatureDate: z.coerce.date().optional().nullable(),
+  dispatcherPaid: z.coerce.boolean().default(false),
+  paymentMethod: z.string().trim().optional().or(z.literal("")),
+  notes: z.string().trim().optional().or(z.literal(""))
 });

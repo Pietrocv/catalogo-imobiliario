@@ -1,4 +1,4 @@
-import { Bath, BedDouble, Car, Edit, MapPin, Trash2 } from "lucide-react";
+import { BadgeCheck, Bath, BedDouble, Car, Edit, MapPin, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
@@ -15,12 +15,29 @@ export function PropertyCard({ property, onChanged, isFavorite }: { property: Pr
   const brokerAvatar = property.broker?.brokerProfile?.avatarUrl || imperioLogo;
   const brokerName = property.broker?.name || property.realEstate.name;
   const isAdmin = user?.role === "ADMIN_IMOBILIARIA";
+  const canSeeCommission = user?.role === "ADMIN_IMOBILIARIA" || user?.role === "CORRETOR";
 
   async function removeProperty() {
-    const confirmed = window.confirm("Deseja remover este imóvel? Ele deixará de aparecer no catálogo público.");
+    const confirmed = window.confirm("Deseja remover este imovel? Ele deixara de aparecer no catalogo publico.");
     if (!confirmed) return;
     await api(`/properties/${property.id}`, { method: "DELETE" });
     onChanged?.();
+  }
+
+  async function markAsSold() {
+    const confirmed = window.confirm(`Marcar "${property.title}" como vendido?`);
+    if (!confirmed) return;
+    await api(`/properties/${property.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "VENDIDO" })
+    });
+    onChanged?.();
+  }
+
+  function canShowSoldButton() {
+    if (!isAdmin || property.status === "VENDIDO") return false;
+    if (property.units?.length > 0) return property.availableUnits.length === 0;
+    return true;
   }
 
   return (
@@ -29,7 +46,7 @@ export function PropertyCard({ property, onChanged, isFavorite }: { property: Pr
       <CardContent className="space-y-3">
         <div>
           <p className="text-sm font-semibold text-primary">
-            {property.type} · {property.purpose}
+            {property.type} - {property.purpose}
           </p>
           <h3 className="line-clamp-2 text-lg font-bold">{property.title}</h3>
           <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
@@ -45,6 +62,7 @@ export function PropertyCard({ property, onChanged, isFavorite }: { property: Pr
           </div>
         </div>
         <p className="text-2xl font-bold">{money(property.price)}</p>
+        {canSeeCommission && <p className="text-sm font-semibold text-primary">Comissao: {money(property.commissionPrice ?? 0)}</p>}
         <div className="flex gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <BedDouble className="h-4 w-4" />
@@ -61,7 +79,7 @@ export function PropertyCard({ property, onChanged, isFavorite }: { property: Pr
         </div>
         {property.availableUnits?.length > 0 && (
           <p className="rounded-md border border-primary/20 bg-[#111214]/50 px-3 py-2 text-sm font-semibold text-primary">
-            {property.availableUnits.length} unidades disponíveis
+            {property.availableUnits.length} unidades disponiveis
           </p>
         )}
         <div className="grid gap-2 sm:grid-cols-2">
@@ -72,9 +90,15 @@ export function PropertyCard({ property, onChanged, isFavorite }: { property: Pr
         </div>
         {isAdmin && (
           <div className="grid grid-cols-2 gap-2">
+            {canShowSoldButton() && (
+              <Button type="button" className="gap-2" onClick={markAsSold}>
+                <BadgeCheck className="h-4 w-4" />
+                Vendido
+              </Button>
+            )}
             <Link
               to={`/admin/imoveis/${property.id}/editar`}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border text-sm font-semibold transition hover:bg-muted"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border px-3 text-sm font-semibold transition hover:bg-muted"
             >
               <Edit className="h-4 w-4" />
               Editar

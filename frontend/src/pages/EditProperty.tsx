@@ -30,6 +30,7 @@ export function EditProperty() {
       purpose: property.purpose,
       status: property.status,
       price: String(property.price),
+      commissionPrice: String(property.commissionPrice ?? 0),
       city: property.city,
       neighborhood: property.neighborhood,
       address: property.address,

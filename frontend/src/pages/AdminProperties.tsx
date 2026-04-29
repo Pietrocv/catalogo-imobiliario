@@ -93,6 +93,7 @@ export function AdminProperties() {
                       {cityLabels[property.city]}, {property.neighborhood}
                     </p>
                     <p className="mt-2 text-xl font-bold">{money(property.price)}</p>
+                    <p className="mt-1 text-sm font-semibold text-primary">Comissao: {money(property.commissionPrice ?? 0)}</p>
                     {property.availableUnits?.length > 0 && (
                       <p className="mt-1 text-sm text-primary">{property.availableUnits.length} unidades disponiveis</p>
                     )}

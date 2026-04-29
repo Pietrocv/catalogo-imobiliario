@@ -5,7 +5,7 @@ import { createCloudinarySignature } from "../utils/cloudinary.js";
 import { AppError, handleError } from "../utils/errors.js";
 
 const uploadFolderSchema = z.object({
-  folder: z.enum(["properties", "property-requests", "brokers"]).default("properties")
+  folder: z.enum(["properties", "property-requests", "brokers", "agios"]).default("properties")
 });
 
 export async function createUploadSignature(request: FastifyRequest, reply: FastifyReply) {

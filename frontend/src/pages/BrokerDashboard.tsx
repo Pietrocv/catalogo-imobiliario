@@ -303,6 +303,7 @@ function PropertyList({ title, properties, empty }: { title: string; properties:
                   <p className="text-sm text-muted-foreground">
                     {cityLabels[property.city]} - {property.neighborhood} - {money(property.price)}
                   </p>
+                  <p className="mt-1 text-sm font-semibold text-primary">Comissao: {money(property.commissionPrice ?? 0)}</p>
                   {property.availableUnits?.length > 0 && (
                     <p className="mt-1 text-sm text-primary">{property.availableUnits.length} unidades disponiveis</p>
                   )}
@@ -334,6 +335,7 @@ function SoldList({ properties, units }: { properties: Property[]; units: SoldUn
               <p className="text-sm text-muted-foreground">
                 {cityLabels[property.city]} - {property.neighborhood} - {money(property.price)}
               </p>
+              <p className="mt-1 text-sm font-semibold text-primary">Comissao: {money(property.commissionPrice ?? 0)}</p>
               <p className="mt-1 text-sm text-primary">Imovel vendido em {property.soldAt ? dateBR(property.soldAt) : "data nao informada"}</p>
             </div>
           ))}
@@ -343,6 +345,7 @@ function SoldList({ properties, units }: { properties: Property[]; units: SoldUn
               <p className="text-sm text-muted-foreground">
                 Unidade {record.unitLabel} - {cityLabels[record.property.city]} - {record.property.neighborhood}
               </p>
+              <p className="mt-1 text-sm font-semibold text-primary">Comissao do anuncio: {money(record.property.commissionPrice ?? 0)}</p>
               <p className="mt-1 text-sm text-primary">Unidade vendida em {record.soldAt ? dateBR(record.soldAt) : "data nao informada"}</p>
             </div>
           ))}

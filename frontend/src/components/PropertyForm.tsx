@@ -25,6 +25,7 @@ export type PropertyFormDraft = {
   purpose: string;
   status: string;
   price: string;
+  commissionPrice: string;
   city: string;
   neighborhood: string;
   address: string;
@@ -47,6 +48,7 @@ const initial: PropertyFormDraft = {
   purpose: "VENDA",
   status: "DISPONIVEL",
   price: "",
+  commissionPrice: "",
   city: "VALPARAISO",
   neighborhood: "",
   address: "",
@@ -101,6 +103,7 @@ export function PropertyForm({
         ...form,
         purpose: "VENDA",
         price: Number(form.price),
+        commissionPrice: Number(form.commissionPrice || 0),
         areaM2: Number(form.areaM2),
         bedrooms: Number(form.bedrooms),
         bathrooms: Number(form.bathrooms),
@@ -128,6 +131,7 @@ export function PropertyForm({
     <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
       <Input placeholder="Titulo" value={form.title} onChange={(e) => setValue("title", e.target.value)} required />
       <Input placeholder="Preco" type="number" value={form.price} onChange={(e) => setValue("price", e.target.value)} required />
+      <Input placeholder="Comissao" type="number" value={form.commissionPrice} onChange={(e) => setValue("commissionPrice", e.target.value)} />
       <Select value={form.city} onChange={(e) => setValue("city", e.target.value)}>
         {cities.map(([value, label]) => (
           <option key={value} value={value}>

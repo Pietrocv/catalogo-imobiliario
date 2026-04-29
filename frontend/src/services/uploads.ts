@@ -8,7 +8,7 @@ type UploadSignature = {
   signature: string;
 };
 
-export async function uploadImage(file: File, folder: "properties" | "property-requests" | "brokers", inviteToken?: string) {
+export async function uploadImage(file: File, folder: "properties" | "property-requests" | "brokers" | "agios", inviteToken?: string) {
   const signature = inviteToken
     ? await api<UploadSignature>(`/broker-invites/${inviteToken}/upload-signature`, {
         method: "POST",

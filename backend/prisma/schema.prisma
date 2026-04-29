@@ -61,6 +61,7 @@ model User {
   properties     Property[]     @relation("BrokerProperties")
   soldProperties Property[]     @relation("SoldProperties")
   soldUnits      PropertyUnit[] @relation("SoldPropertyUnits")
+  agios          Agio[]         @relation("BrokerAgios")
   favorites      FavoriteProperty[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -76,8 +77,10 @@ model RealEstate {
   users       User[]
   brokers     BrokerProfile[]
   properties  Property[]
+  agios       Agio[]
   requests    PropertyRequest[]
   invites     BrokerInvite[]
+  salesControls SalesControl[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 }
@@ -117,6 +120,7 @@ model Property {
   purpose           PropertyPurpose
   status            PropertyStatus   @default(DISPONIVEL)
   price             Decimal          @db.Decimal(12, 2)
+  commissionPrice   Decimal          @default(0) @db.Decimal(12, 2)
   city              PropertyCity
   neighborhood      String
   address           String
@@ -188,6 +192,7 @@ model PropertyRequest {
   status           PropertyRequestStatus  @default(PENDENTE)
   rejectionReason  String?
   price            Decimal                @db.Decimal(12, 2)
+  commissionPrice  Decimal                @default(0) @db.Decimal(12, 2)
   city             PropertyCity
   neighborhood     String
   address          String
@@ -215,4 +220,60 @@ model PropertyRequestImage {
   propertyRequestId String
   propertyRequest   PropertyRequest @relation(fields: [propertyRequestId], references: [id], onDelete: Cascade)
   createdAt         DateTime        @default(now())
+}
+
+model Agio {
+  id                       String         @id @default(uuid())
+  title                    String
+  description              String
+  status                   PropertyStatus @default(DISPONIVEL)
+  price                    Decimal        @db.Decimal(12, 2)
+  commissionPrice          Decimal        @default(0) @db.Decimal(12, 2)
+  installmentAmount        Decimal        @db.Decimal(12, 2)
+  outstandingBalance       Decimal        @db.Decimal(12, 2)
+  roomInfo                 String
+  areaM2                   Decimal        @db.Decimal(10, 2)
+  plannedFurniture         Boolean        @default(false)
+  hasDebtsOrProcurations   Boolean        @default(false)
+  debtNotes                String?
+  firstOwner               Boolean        @default(false)
+  paidInstallments         Int
+  city                     PropertyCity
+  neighborhood             String
+  address                  String
+  mapUrl                   String?
+  condominiumName          String
+  realEstateId             String
+  realEstate               RealEstate     @relation(fields: [realEstateId], references: [id])
+  brokerId                 String?
+  broker                   User?          @relation("BrokerAgios", fields: [brokerId], references: [id])
+  images                   AgioImage[]
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+}
+
+model AgioImage {
+  id        String   @id @default(uuid())
+  url       String
+  agioId    String
+  agio      Agio     @relation(fields: [agioId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model SalesControl {
+  id                 String     @id @default(uuid())
+  clientCpf          String
+  propertyName       String
+  clientName         String
+  builder            String?
+  saleDate           DateTime
+  cca                String?
+  signatureDate      DateTime?
+  dispatcherPaid     Boolean    @default(false)
+  paymentMethod      String?
+  notes              String?
+  realEstateId       String
+  realEstate         RealEstate @relation(fields: [realEstateId], references: [id])
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 }

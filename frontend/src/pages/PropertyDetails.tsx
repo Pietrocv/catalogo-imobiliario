@@ -57,6 +57,9 @@ export function PropertyDetails() {
             {cityLabels[property.city]}, {property.neighborhood} - {property.address}
           </p>
           <p className="mt-5 text-3xl font-bold">{money(property.price)}</p>
+          {(user?.role === "ADMIN_IMOBILIARIA" || user?.role === "CORRETOR") && (
+            <p className="mt-2 text-lg font-bold text-primary">Comissao: {money(property.commissionPrice ?? 0)}</p>
+          )}
 
           <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
             <Info icon={<Ruler />} label={`${property.areaM2} m²`} />

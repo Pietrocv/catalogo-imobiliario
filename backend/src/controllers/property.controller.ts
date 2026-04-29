@@ -122,9 +122,9 @@ export async function updateProperty(request: FastifyRequest<{ Params: { id: str
     }
     await ensureSellerBelongsToRealEstate(data.soldById, current.realEstateId);
     const propertyData = normalizePropertyData(withoutImages(data), current.soldAt);
-    await ensureCanMarkPropertySold(current.id, propertyData.status);
 
     await syncPropertyUnits(current.id, propertyData.availableUnits);
+    await ensureCanMarkPropertySold(current.id, propertyData.status);
 
     const property = await prisma.property.update({
       where: { id: request.params.id },
@@ -282,6 +282,7 @@ function formatProperty(property: any) {
     broker: property.broker ? sanitizeUser(property.broker) : null,
     soldBy: property.soldBy ? sanitizeUser(property.soldBy) : null,
     availableUnits: property.units?.filter((unit: any) => unit.status === "DISPONIVEL").map((unit: any) => unit.label) ?? property.availableUnits,
+    commissionPrice: Number(property.commissionPrice ?? 0),
     units: property.units?.map((unit: any) => ({
       ...unit,
       soldBy: unit.soldBy ? sanitizeUser(unit.soldBy) : null
