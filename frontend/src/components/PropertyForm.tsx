@@ -59,19 +59,34 @@ const initial: PropertyFormDraft = {
   acceptsFinancing: true,
   featured: false,
   soldById: "",
-  images: [] as string[]
+  images: []
 };
 
-export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = "properties", initialValues, resetOnSubmit = true, onDraftChange, brokerOptions = [], allowFeatured = false }: Props) {
+export function PropertyForm({
+  onSubmit,
+  submitLabel,
+  showStatus,
+  imageFolder = "properties",
+  initialValues,
+  resetOnSubmit = true,
+  onDraftChange,
+  allowFeatured = false
+}: Props) {
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (initialValues) {
-      setForm((current) => ({ ...current, ...initialValues }));
+      setForm((current) => ({ ...current, ...initialValues, purpose: "VENDA" }));
     }
   }, [initialValues]);
+
+  useEffect(() => {
+    if (!allowFeatured && form.featured) {
+      setForm((current) => ({ ...current, featured: false }));
+    }
+  }, [allowFeatured, form.featured]);
 
   useEffect(() => {
     onDraftChange?.(form);
@@ -84,6 +99,7 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
     try {
       await onSubmit({
         ...form,
+        purpose: "VENDA",
         price: Number(form.price),
         areaM2: Number(form.areaM2),
         bedrooms: Number(form.bedrooms),
@@ -110,8 +126,8 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-      <Input placeholder="Título" value={form.title} onChange={(e) => setValue("title", e.target.value)} required />
-      <Input placeholder="Preço" type="number" value={form.price} onChange={(e) => setValue("price", e.target.value)} required />
+      <Input placeholder="Titulo" value={form.title} onChange={(e) => setValue("title", e.target.value)} required />
+      <Input placeholder="Preco" type="number" value={form.price} onChange={(e) => setValue("price", e.target.value)} required />
       <Select value={form.city} onChange={(e) => setValue("city", e.target.value)}>
         {cities.map(([value, label]) => (
           <option key={value} value={value}>
@@ -120,35 +136,19 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
         ))}
       </Select>
       <Input placeholder="Bairro" value={form.neighborhood} onChange={(e) => setValue("neighborhood", e.target.value)} required />
-      <Input placeholder="Endereço" value={form.address} onChange={(e) => setValue("address", e.target.value)} required />
+      <Input placeholder="Endereco" value={form.address} onChange={(e) => setValue("address", e.target.value)} required />
       <Input placeholder="URL do Google Maps (opcional)" value={form.mapUrl} onChange={(e) => setValue("mapUrl", e.target.value)} />
-      <Input placeholder="Área em m²" type="number" value={form.areaM2} onChange={(e) => setValue("areaM2", e.target.value)} required />
+      <Input placeholder="Area em m2" type="number" value={form.areaM2} onChange={(e) => setValue("areaM2", e.target.value)} required />
       <Select value={form.type} onChange={(e) => setValue("type", e.target.value)}>
         <option value="NOVO">Novo</option>
         <option value="USADO">Usado</option>
         <option value="PLANTA">Na planta</option>
       </Select>
-      <Select value={form.purpose} onChange={(e) => setValue("purpose", e.target.value)}>
-        <option value="VENDA">Venda</option>
-        <option value="ALUGUEL">Aluguel</option>
-      </Select>
       {showStatus && (
         <Select value={form.status} onChange={(e) => setValue("status", e.target.value)}>
-          <option value="DISPONIVEL">Disponível</option>
+          <option value="DISPONIVEL">Disponivel</option>
           <option value="RESERVADO">Reservado</option>
-          <option value="VENDIDO">Vendido</option>
-          <option value="ALUGADO">Alugado</option>
           <option value="INATIVO">Inativo</option>
-        </Select>
-      )}
-      {showStatus && form.status === "VENDIDO" && (
-        <Select value={form.soldById} onChange={(e) => setValue("soldById", e.target.value)}>
-          <option value="">Corretor que vendeu</option>
-          {brokerOptions.map((broker) => (
-            <option key={broker.userId} value={broker.userId}>
-              {broker.name}
-            </option>
-          ))}
         </Select>
       )}
       <div className="grid grid-cols-3 gap-3">
@@ -158,7 +158,7 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
       </div>
       <Input
         className="md:col-span-2"
-        placeholder="Unidades disponíveis, separadas por vírgula. Ex: 01, 02, 03, 101, 102, 103"
+        placeholder="Unidades disponiveis, separadas por virgula. Ex: 01, 02, 03, 101, 102, 103"
         value={form.availableUnits}
         onChange={(e) => setValue("availableUnits", e.target.value)}
       />
@@ -174,9 +174,9 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
           </label>
         )}
       </div>
-      <Textarea className="md:col-span-2" placeholder="Descrição" value={form.description} onChange={(e) => setValue("description", e.target.value)} required />
+      <Textarea className="md:col-span-2" placeholder="Descricao" value={form.description} onChange={(e) => setValue("description", e.target.value)} required />
       <div className="md:col-span-2">
-        <p className="mb-2 text-sm font-semibold">Imagens do imóvel</p>
+        <p className="mb-2 text-sm font-semibold">Imagens do imovel</p>
         <ImageUploader folder={imageFolder} value={form.images} onChange={(urls) => setValue("images", urls)} />
       </div>
       <div className="md:col-span-2 flex items-center gap-3">

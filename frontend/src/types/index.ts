@@ -1,8 +1,8 @@
-export type UserRole = "ADMIN_IMOBILIARIA" | "CORRETOR";
+export type UserRole = "ADMIN_IMOBILIARIA" | "CORRETOR" | "CLIENTE";
 export type PropertyCity = "VALPARAISO" | "LUZIANIA" | "CIDADE_OCIDENTAL" | "JARDIM_INGA";
 export type PropertyType = "NOVO" | "USADO" | "PLANTA";
-export type PropertyPurpose = "VENDA" | "ALUGUEL";
-export type PropertyStatus = "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "ALUGADO" | "INATIVO";
+export type PropertyPurpose = "VENDA";
+export type PropertyStatus = "DISPONIVEL" | "RESERVADO" | "VENDIDO" | "INATIVO";
 export type PropertyRequestStatus = "PENDENTE" | "APROVADO" | "RECUSADO";
 
 export type RealEstate = {

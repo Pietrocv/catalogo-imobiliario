@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcryptjs";
 import { prisma } from "../prisma/client.js";
 import { AppError, handleError } from "../utils/errors.js";
-import { loginSchema, registerSchema } from "../utils/schemas.js";
+import { loginSchema, registerSchema, updateMeSchema } from "../utils/schemas.js";
 
 export async function register(request: FastifyRequest, reply: FastifyReply) {
   try {
@@ -23,7 +23,7 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
         email: data.email,
         passwordHash,
         role: data.role,
-        realEstateId: data.realEstateId,
+        realEstateId: data.role === "CLIENTE" ? null : data.realEstateId,
         brokerProfile:
           data.role === "CORRETOR" && data.realEstateId
             ? {
@@ -36,7 +36,7 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
               }
             : undefined
       },
-      include: { brokerProfile: true }
+      include: { brokerProfile: true, realEstate: true }
     });
 
     const token = await reply.jwtSign({
@@ -81,6 +81,47 @@ export async function me(request: FastifyRequest, reply: FastifyReply) {
     include: { realEstate: true, brokerProfile: true }
   });
   return reply.send({ user: user ? sanitizeUser(user) : null });
+}
+
+export async function updateMe(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const data = updateMeSchema.parse(request.body);
+    const current = await prisma.user.findUnique({
+      where: { id: request.user.sub },
+      include: { brokerProfile: true }
+    });
+    if (!current) throw new AppError("Usuário não encontrado", 404);
+
+    const user = await prisma.user.update({
+      where: { id: current.id },
+      data: {
+        name: data.name ?? current.name,
+        brokerProfile:
+          current.role === "CORRETOR"
+            ? {
+                upsert: {
+                  create: {
+                    realEstateId: current.realEstateId!,
+                    phone: data.phone ?? "",
+                    creci: data.creci || null,
+                    avatarUrl: data.avatarUrl || null
+                  },
+                  update: {
+                    phone: data.phone,
+                    creci: data.creci === "" ? null : data.creci,
+                    avatarUrl: data.avatarUrl === "" ? null : data.avatarUrl
+                  }
+                }
+              }
+            : undefined
+      },
+      include: { realEstate: true, brokerProfile: true }
+    });
+
+    return reply.send({ user: sanitizeUser(user) });
+  } catch (error) {
+    return handleError(error, reply);
+  }
 }
 
 function sanitizeUser<T extends { passwordHash?: string }>(user: T) {

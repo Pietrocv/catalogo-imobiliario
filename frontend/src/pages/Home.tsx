@@ -8,9 +8,12 @@ import { Select } from "../components/ui/select";
 import { api } from "../services/api";
 import type { Property } from "../types";
 import { cities } from "../utils/labels";
+import { useAuth } from "../contexts/AuthContext";
 
 export function Home() {
+  const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
+  const [favorites, setFavorites] = useState<Property[]>([]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
@@ -18,8 +21,20 @@ export function Home() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (user?.role === "CLIENTE") {
+      loadFavorites();
+    } else {
+      setFavorites([]);
+    }
+  }, [user?.role]);
+
   async function load(query = "") {
     setProperties(await api<Property[]>(`/properties${query}`));
+  }
+
+  async function loadFavorites() {
+    setFavorites(await api<Property[]>("/favorites"));
   }
 
   function submit(event: FormEvent) {
@@ -33,12 +48,13 @@ export function Home() {
   }
 
   function clearAdvanced() {
-    setFilters(({ city, type, purpose }) => ({ city, type, purpose }));
+    setFilters(({ city, type, search }) => ({ city, type, search }));
   }
 
   function reloadWithCurrentFilters() {
     const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
     load(`?${params.toString()}`);
+    if (user?.role === "CLIENTE") loadFavorites();
   }
 
   return (
@@ -56,7 +72,7 @@ export function Home() {
 
       <section className="mx-auto max-w-7xl px-4 py-8">
         <form onSubmit={submit} className="rounded-lg border border-[#D3AA53]/30 bg-[#17191c] p-4 shadow-lg shadow-black/20">
-          <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto_auto]">
+          <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_auto_auto]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -79,11 +95,6 @@ export function Home() {
               <option value="NOVO">Novo</option>
               <option value="USADO">Usado</option>
               <option value="PLANTA">Na planta</option>
-            </Select>
-            <Select onChange={(event) => setFilter("purpose", event.target.value)} value={filters.purpose ?? ""}>
-              <option value="">Finalidade</option>
-              <option value="VENDA">Venda</option>
-              <option value="ALUGUEL">Aluguel</option>
             </Select>
             <Button type="button" variant="outline" className="gap-2" onClick={() => setAdvancedOpen((open) => !open)}>
               <SlidersHorizontal className="h-4 w-4" />
@@ -129,7 +140,12 @@ export function Home() {
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} onChanged={reloadWithCurrentFilters} />
+            <PropertyCard
+              key={property.id}
+              property={property}
+              isFavorite={favorites.some((favorite) => favorite.id === property.id)}
+              onChanged={reloadWithCurrentFilters}
+            />
           ))}
         </div>
       </section>

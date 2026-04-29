@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-export const roleSchema = z.enum(["ADMIN_IMOBILIARIA", "CORRETOR"]);
+export const roleSchema = z.enum(["ADMIN_IMOBILIARIA", "CORRETOR", "CLIENTE"]);
 export const citySchema = z.enum(["VALPARAISO", "LUZIANIA", "CIDADE_OCIDENTAL", "JARDIM_INGA"]);
 export const typeSchema = z.enum(["NOVO", "USADO", "PLANTA"]);
-export const purposeSchema = z.enum(["VENDA", "ALUGUEL"]);
-export const propertyStatusSchema = z.enum(["DISPONIVEL", "RESERVADO", "VENDIDO", "ALUGADO", "INATIVO"]);
+export const purposeSchema = z.enum(["VENDA"]);
+export const propertyStatusSchema = z.enum(["DISPONIVEL", "RESERVADO", "VENDIDO", "INATIVO"]);
 
 export const imageUrlsSchema = z.array(z.string().url()).default([]);
 export const availableUnitsSchema = z.array(z.string().trim().min(1)).default([]);
@@ -23,6 +23,13 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1)
+});
+
+export const updateMeSchema = z.object({
+  name: z.string().min(2).optional(),
+  phone: z.string().trim().min(8).optional(),
+  creci: z.string().trim().optional(),
+  avatarUrl: z.string().url().optional().or(z.literal(""))
 });
 
 export const realEstateSchema = z.object({

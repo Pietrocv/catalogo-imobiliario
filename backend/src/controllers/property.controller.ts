@@ -33,7 +33,7 @@ export async function listProperties(request: FastifyRequest, reply: FastifyRepl
   try {
     const filters = propertyFiltersSchema.parse(request.query);
     const where: Prisma.PropertyWhereInput = {
-      status: request.user?.role ? { not: "INATIVO" } : "DISPONIVEL",
+      status: request.user?.role === "ADMIN_IMOBILIARIA" || request.user?.role === "CORRETOR" ? { not: "INATIVO" } : "DISPONIVEL",
       city: filters.city,
       type: filters.type,
       purpose: filters.purpose,
@@ -122,6 +122,7 @@ export async function updateProperty(request: FastifyRequest<{ Params: { id: str
     }
     await ensureSellerBelongsToRealEstate(data.soldById, current.realEstateId);
     const propertyData = normalizePropertyData(withoutImages(data), current.soldAt);
+    await ensureCanMarkPropertySold(current.id, propertyData.status);
 
     await syncPropertyUnits(current.id, propertyData.availableUnits);
 
@@ -174,16 +175,6 @@ export async function sellPropertyUnit(request: FastifyRequest<{ Params: { id: s
       where: { id: request.params.unitId },
       data: unitData
     });
-
-    const remainingUnits = await prisma.propertyUnit.count({
-      where: { propertyId: current.id, status: "DISPONIVEL" }
-    });
-    if (remainingUnits === 0) {
-      await prisma.property.update({
-        where: { id: current.id },
-        data: { status: "VENDIDO" }
-      });
-    }
 
     const property = await prisma.property.findUnique({
       where: { id: current.id },
@@ -249,6 +240,16 @@ async function ensureSellerBelongsToRealEstate(soldById: string | undefined, rea
     }
   });
   if (!seller) throw new AppError("Informe um corretor vinculado a imobiliaria para registrar a venda", 400);
+}
+
+async function ensureCanMarkPropertySold(propertyId: string, status: string | undefined) {
+  if (status !== "VENDIDO") return;
+  const availableUnits = await prisma.propertyUnit.count({
+    where: { propertyId, status: "DISPONIVEL" }
+  });
+  if (availableUnits > 0) {
+    throw new AppError("Venda as unidades disponiveis antes de marcar o imovel como vendido");
+  }
 }
 
 async function syncPropertyUnits(propertyId: string, labels: string[] | undefined) {

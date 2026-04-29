@@ -5,6 +5,7 @@ import { AdminBrokers } from "./pages/AdminBrokers";
 import { AdminProperties } from "./pages/AdminProperties";
 import { AdminRequests } from "./pages/AdminRequests";
 import { BrokerDashboard } from "./pages/BrokerDashboard";
+import { CustomerFavorites } from "./pages/CustomerFavorites";
 import { Home } from "./pages/Home";
 import { EditProperty } from "./pages/EditProperty";
 import { Login } from "./pages/Login";
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute roles={["CORRETOR"]} />,
         children: [{ path: "/broker", element: <BrokerDashboard /> }]
+      },
+      {
+        element: <ProtectedRoute roles={["CLIENTE"]} />,
+        children: [{ path: "/cliente/favoritos", element: <CustomerFavorites /> }]
       }
     ]
   }

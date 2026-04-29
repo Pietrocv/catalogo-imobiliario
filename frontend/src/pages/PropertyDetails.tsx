@@ -2,6 +2,9 @@ import { Bath, BedDouble, Car, MapPinned, MessageCircle, Ruler } from "lucide-re
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
+import { MediaDownloadButton } from "../components/MediaDownloadButton";
+import { FavoriteButton } from "../components/FavoriteButton";
+import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
 import type { Property } from "../types";
 import { cityLabels, money } from "../utils/labels";
@@ -9,20 +12,31 @@ import imperioLogo from "../assets/imperiologo.jpg";
 
 export function PropertyDetails() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [property, setProperty] = useState<Property | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   useEffect(() => {
     api<Property>(`/properties/${id}`).then(setProperty);
   }, [id]);
+
+  useEffect(() => {
+    if (user?.role === "CLIENTE") {
+      api<Property[]>("/favorites").then((favorites) => setFavoriteIds(favorites.map((favorite) => favorite.id)));
+    } else {
+      setFavoriteIds([]);
+    }
+  }, [user?.role]);
 
   if (!property) return <div className="mx-auto max-w-7xl px-4 py-10">Carregando...</div>;
 
   const images = property.images.length ? property.images : [{ id: "fallback", url: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80" }];
   const brokerAvatar = property.broker?.brokerProfile?.avatarUrl || imperioLogo;
   const brokerName = property.broker?.name || property.realEstate.name;
-  const whatsappMessage = `Olá! Vim pelo site da Império Imóveis e gostaria de falar sobre o imóvel: ${property.title}.`;
+  const whatsappMessage = buildPropertyWhatsAppMessage(property);
   const brokerWhatsApp = buildWhatsAppUrl(property.broker?.brokerProfile?.phone, whatsappMessage);
   const realEstateWhatsApp = buildWhatsAppUrl(property.realEstate.phone, whatsappMessage);
+  const canDownloadMedia = user?.role === "CORRETOR" || user?.role === "ADMIN_IMOBILIARIA";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -84,6 +98,8 @@ export function PropertyDetails() {
         <Card>
           <CardContent className="space-y-4">
             <h2 className="text-xl font-bold">Atendimento</h2>
+            <FavoriteButton propertyId={property.id} initialFavorited={favoriteIds.includes(property.id)} className="w-full" />
+            {canDownloadMedia && property.images.length > 0 && <MediaDownloadButton property={property} className="w-full" />}
             <div>
               <p className="font-semibold">{property.realEstate.name}</p>
               <p className="text-sm text-muted-foreground">{property.realEstate.phone}</p>
@@ -117,7 +133,7 @@ export function PropertyDetails() {
                 <p className="text-sm text-muted-foreground">{property.broker.email}</p>
                 {property.broker.brokerProfile?.phone && <p className="text-sm text-muted-foreground">{property.broker.brokerProfile.phone}</p>}
                 <p className="text-sm text-muted-foreground">{property.broker.brokerProfile?.creci || "CRECI não informado"}</p>
-                {brokerWhatsApp && <WhatsAppButton href={brokerWhatsApp} label="Chamar captador no WhatsApp" />}
+                {brokerWhatsApp && <WhatsAppButton href={brokerWhatsApp} label="Enviar anúncio ao captador" />}
               </div>
             )}
 
@@ -130,7 +146,7 @@ export function PropertyDetails() {
                     <p className="font-semibold">{property.realEstate.name}</p>
                   </div>
                 </div>
-                {realEstateWhatsApp && <WhatsAppButton href={realEstateWhatsApp} label="Chamar no WhatsApp" />}
+                {realEstateWhatsApp && <WhatsAppButton href={realEstateWhatsApp} label="Enviar anúncio no WhatsApp" />}
               </div>
             )}
           </CardContent>
@@ -161,6 +177,26 @@ function WhatsAppButton({ href, label }: { href: string; label: string }) {
       {label}
     </a>
   );
+}
+
+function buildPropertyWhatsAppMessage(property: Property) {
+  const propertyUrl = `${window.location.origin}/properties/${property.id}`;
+  const lines = [
+    `Olá! Tenho interesse neste imóvel da Império Imóveis:`,
+    "",
+    `*${property.title}*`,
+    `Preço: ${money(property.price)}`,
+    `Localização: ${cityLabels[property.city]}, ${property.neighborhood}`,
+    `${property.bedrooms} quartos | ${property.bathrooms} banheiros | ${property.parkingSpaces} vagas`,
+    `Área: ${property.areaM2} m²`,
+    `Financiamento: ${property.acceptsFinancing ? "Aceita financiamento" : "Não aceita financiamento"}`,
+    property.availableUnits?.length ? `Unidades disponíveis: ${property.availableUnits.join(", ")}` : "",
+    "",
+    `Veja fotos, localização e detalhes aqui:`,
+    propertyUrl
+  ];
+
+  return lines.filter(Boolean).join("\n");
 }
 
 function buildWhatsAppUrl(phone: string | null | undefined, message: string) {

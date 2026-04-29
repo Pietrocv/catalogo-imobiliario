@@ -10,6 +10,7 @@ datasource db {
 enum UserRole {
   ADMIN_IMOBILIARIA
   CORRETOR
+  CLIENTE
 }
 
 enum PropertyType {
@@ -20,14 +21,12 @@ enum PropertyType {
 
 enum PropertyPurpose {
   VENDA
-  ALUGUEL
 }
 
 enum PropertyStatus {
   DISPONIVEL
   RESERVADO
   VENDIDO
-  ALUGADO
   INATIVO
 }
 
@@ -62,6 +61,7 @@ model User {
   properties     Property[]     @relation("BrokerProperties")
   soldProperties Property[]     @relation("SoldProperties")
   soldUnits      PropertyUnit[] @relation("SoldPropertyUnits")
+  favorites      FavoriteProperty[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -139,8 +139,20 @@ model Property {
   sourceRequest     PropertyRequest? @relation(fields: [sourceRequestId], references: [id])
   images            PropertyImage[]
   units             PropertyUnit[]
+  favoritedBy       FavoriteProperty[]
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+}
+
+model FavoriteProperty {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
 }
 
 model PropertyUnit {

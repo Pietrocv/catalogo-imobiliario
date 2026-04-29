@@ -3,14 +3,15 @@ import { LayoutDashboard, LogOut, UserRound } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import imperioLogo from "../assets/imperiologo.jpg";
 import { useAuth } from "../contexts/AuthContext";
+import { dashboardPath, roleLabel } from "../utils/navigation";
 import { Button } from "./ui/button";
 import { WhatsAppContact } from "./WhatsAppContact";
 
 export function Layout() {
   const { user, logout } = useAuth();
   const avatarUrl = user?.brokerProfile?.avatarUrl || null;
-  const dashboardLink = user?.role === "ADMIN_IMOBILIARIA" ? "/admin" : user?.role === "CORRETOR" ? "/broker" : null;
-  const dashboardLabel = user?.role === "ADMIN_IMOBILIARIA" ? "Dashboard" : "Minha área";
+  const dashboardLink = user ? dashboardPath(user.role) : null;
+  const dashboardLabel = user?.role === "CLIENTE" ? "Meus favoritos" : user?.role === "ADMIN_IMOBILIARIA" ? "Dashboard" : "Minha area";
 
   return (
     <div className="min-h-screen bg-[#111214] text-[#ECECEC]">
@@ -37,7 +38,11 @@ export function Layout() {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <div className="flex items-center gap-3 rounded-full border border-[#D3AA53]/30 bg-white/5 px-3 py-2">
+                <Link
+                  to={dashboardLink ?? "/"}
+                  className="flex items-center gap-3 rounded-full border border-[#D3AA53]/30 bg-white/5 px-3 py-2 transition hover:border-[#D3AA53] hover:bg-[#D3AA53]/10"
+                  title="Ir para minha área"
+                >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt={user.name} className="h-9 w-9 rounded-full object-cover" />
                   ) : (
@@ -47,9 +52,9 @@ export function Layout() {
                   )}
                   <div className="min-w-0">
                     <p className="max-w-36 truncate text-sm font-bold text-[#ECECEC]">{user.name}</p>
-                    <p className="text-xs text-[#D3AA53]">{user.role === "ADMIN_IMOBILIARIA" ? "Admin" : "Corretor"}</p>
+                    <p className="text-xs text-[#D3AA53]">{roleLabel(user.role)}</p>
                   </div>
-                </div>
+                </Link>
                 <Button variant="ghost" className="text-[#ECECEC] hover:bg-[#D3AA53]/10 hover:text-[#D3AA53]" onClick={logout} title="Sair">
                   <LogOut className="h-4 w-4" />
                 </Button>

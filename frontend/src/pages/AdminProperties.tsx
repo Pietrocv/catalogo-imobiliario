@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Edit, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
@@ -21,21 +21,39 @@ export function AdminProperties() {
   }
 
   async function updateStatus(id: string, status: PropertyStatus) {
-    await api(`/properties/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
-    await refresh();
+    setMessage("");
+    try {
+      await api(`/properties/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+      setMessage(status === "VENDIDO" ? "Imovel marcado como vendido." : "Status atualizado.");
+      await refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erro ao atualizar status");
+    }
+  }
+
+  async function markAsSold(property: Property) {
+    const confirmed = window.confirm(`Marcar "${property.title}" como vendido?`);
+    if (!confirmed) return;
+    await updateStatus(property.id, "VENDIDO");
   }
 
   async function removeProperty(id: string) {
-    const confirmed = window.confirm("Deseja remover este imóvel? Ele deixará de aparecer no catálogo público.");
+    const confirmed = window.confirm("Deseja remover este imovel? Ele deixara de aparecer no catalogo publico.");
     if (!confirmed) return;
     setMessage("");
     try {
       await api(`/properties/${id}`, { method: "DELETE" });
-      setMessage("Imóvel removido.");
+      setMessage("Imovel removido.");
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao remover imóvel");
+      setMessage(error instanceof Error ? error.message : "Erro ao remover imovel");
     }
+  }
+
+  function canShowSoldButton(property: Property) {
+    if (property.status === "VENDIDO") return false;
+    if (property.units?.length > 0) return property.availableUnits.length === 0;
+    return true;
   }
 
   return (
@@ -45,15 +63,15 @@ export function AdminProperties() {
           <ArrowLeft className="h-4 w-4" />
           Voltar ao dashboard
         </Link>
-        <p className="mt-5 font-semibold text-primary">Área administrativa</p>
-        <h1 className="text-3xl font-bold">Imóveis cadastrados</h1>
+        <p className="mt-5 font-semibold text-primary">Area administrativa</p>
+        <h1 className="text-3xl font-bold">Imoveis cadastrados</h1>
         {message && <p className="mt-2 text-sm font-medium text-primary">{message}</p>}
       </div>
 
       {properties.length === 0 && (
         <Card>
           <CardContent>
-            <p className="text-muted-foreground">Nenhum imóvel cadastrado ainda.</p>
+            <p className="text-muted-foreground">Nenhum imovel cadastrado ainda.</p>
           </CardContent>
         </Card>
       )}
@@ -68,7 +86,7 @@ export function AdminProperties() {
                 <CardContent className="space-y-4">
                   <div>
                     <p className="text-sm font-semibold text-primary">
-                      {property.type} · {property.purpose} · {property.status}
+                      {property.type} - Venda - {property.status}
                     </p>
                     <h2 className="text-lg font-bold">{property.title}</h2>
                     <p className="text-sm text-muted-foreground">
@@ -76,7 +94,10 @@ export function AdminProperties() {
                     </p>
                     <p className="mt-2 text-xl font-bold">{money(property.price)}</p>
                     {property.availableUnits?.length > 0 && (
-                      <p className="mt-1 text-sm text-primary">{property.availableUnits.length} unidades disponíveis</p>
+                      <p className="mt-1 text-sm text-primary">{property.availableUnits.length} unidades disponiveis</p>
+                    )}
+                    {property.units?.length > 0 && property.availableUnits.length === 0 && property.status !== "VENDIDO" && (
+                      <p className="mt-1 text-sm text-primary">Todas as unidades foram vendidas. Agora voce pode marcar o anuncio como vendido.</p>
                     )}
                     {property.status === "VENDIDO" && property.soldBy && (
                       <p className="mt-1 text-sm text-muted-foreground">Vendido por {property.soldBy.name}</p>
@@ -84,12 +105,20 @@ export function AdminProperties() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Select className="max-w-48" value={property.status} onChange={(event) => updateStatus(property.id, event.target.value as PropertyStatus)}>
-                      <option value="DISPONIVEL">Disponível</option>
-                      <option value="RESERVADO">Reservado</option>
-                      <option value="VENDIDO">Vendido</option>
-                      <option value="ALUGADO">Alugado</option>
-                    </Select>
+                    {property.status === "VENDIDO" ? (
+                      <span className="inline-flex h-10 items-center rounded-md border border-[#D3AA53]/40 px-4 text-sm font-semibold text-primary">Vendido</span>
+                    ) : (
+                      <Select className="max-w-48" value={property.status} onChange={(event) => updateStatus(property.id, event.target.value as PropertyStatus)}>
+                        <option value="DISPONIVEL">Disponivel</option>
+                        <option value="RESERVADO">Reservado</option>
+                      </Select>
+                    )}
+                    {canShowSoldButton(property) && (
+                      <Button className="gap-2" onClick={() => markAsSold(property)}>
+                        <BadgeCheck className="h-4 w-4" />
+                        Vendido
+                      </Button>
+                    )}
                     <Link
                       to={`/admin/imoveis/${property.id}/editar`}
                       className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border px-4 text-sm font-semibold transition hover:bg-muted"

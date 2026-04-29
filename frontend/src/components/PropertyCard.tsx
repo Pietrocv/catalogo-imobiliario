@@ -7,8 +7,9 @@ import { cityLabels, money } from "../utils/labels";
 import imperioLogo from "../assets/imperiologo.jpg";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
+import { FavoriteButton } from "./FavoriteButton";
 
-export function PropertyCard({ property, onChanged }: { property: Property; onChanged?: () => void }) {
+export function PropertyCard({ property, onChanged, isFavorite }: { property: Property; onChanged?: () => void; isFavorite?: boolean }) {
   const { user } = useAuth();
   const image = property.images[0]?.url ?? "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80";
   const brokerAvatar = property.broker?.brokerProfile?.avatarUrl || imperioLogo;
@@ -63,9 +64,12 @@ export function PropertyCard({ property, onChanged }: { property: Property; onCh
             {property.availableUnits.length} unidades disponíveis
           </p>
         )}
-        <Link to={`/properties/${property.id}`} className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary text-sm font-semibold text-white">
-          Ver detalhes
-        </Link>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Link to={`/properties/${property.id}`} className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary text-sm font-semibold text-white">
+            Ver detalhes
+          </Link>
+          <FavoriteButton propertyId={property.id} initialFavorited={isFavorite} onChanged={onChanged} className="w-full" />
+        </div>
         {isAdmin && (
           <div className="grid grid-cols-2 gap-2">
             <Link

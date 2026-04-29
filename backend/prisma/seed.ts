@@ -162,14 +162,14 @@ async function main() {
         images: ["https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80"]
       },
       {
-        title: "Casa para aluguel em Jardim Ingá",
-        description: "Casa funcional para locação, com quintal privativo e garagem coberta.",
+        title: "Casa usada em Jardim Inga",
+        description: "Casa funcional a venda, com quintal privativo e garagem coberta.",
         type: "USADO" as const,
-        purpose: "ALUGUEL" as const,
+        purpose: "VENDA" as const,
         status: "DISPONIVEL" as const,
-        price: 1800,
+        price: 285000,
         city: "JARDIM_INGA" as const,
-        neighborhood: "Jardim Ingá",
+        neighborhood: "Jardim Inga",
         address: "Rua 7, casa 14",
         mapUrl: "https://www.google.com/maps/search/?api=1&query=Jardim+Inga+Luziania+GO",
         areaM2: 90,
@@ -177,7 +177,7 @@ async function main() {
         bathrooms: 2,
         parkingSpaces: 1,
         availableUnits: [],
-        acceptsFinancing: false,
+        acceptsFinancing: true,
         featured: false,
         brokerId: brokers[1].id,
         images: ["https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=1200&q=80"]

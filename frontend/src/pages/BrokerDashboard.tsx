@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { ClipboardList, Home, PlusCircle, TrendingUp } from "lucide-react";
+import { ClipboardList, Home, PlusCircle, TrendingUp, UserPen } from "lucide-react";
+import { FormEvent } from "react";
+import { ImageUploader } from "../components/ImageUploader";
+import { MediaDownloadButton } from "../components/MediaDownloadButton";
 import { PropertyForm } from "../components/PropertyForm";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
+import { Input } from "../components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../services/api";
 import type { Property, PropertyRequest } from "../types";
@@ -18,14 +22,32 @@ type SoldUnitRecord = {
 };
 
 export function BrokerDashboard() {
-  const { user } = useAuth();
+  const { user, token, setSession } = useAuth();
   const [requests, setRequests] = useState<PropertyRequest[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    phone: "",
+    creci: "",
+    avatarUrl: ""
+  });
 
   useEffect(() => {
     refresh();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileForm({
+      name: user.name,
+      phone: user.brokerProfile?.phone ?? "",
+      creci: user.brokerProfile?.creci ?? "",
+      avatarUrl: user.brokerProfile?.avatarUrl ?? ""
+    });
+  }, [user]);
 
   async function refresh() {
     const [requestsData, propertiesData] = await Promise.all([
@@ -40,6 +62,18 @@ export function BrokerDashboard() {
     await api("/property-requests", { method: "POST", body: JSON.stringify(payload) });
     await refresh();
     setActiveTab("requests");
+  }
+
+  async function updateProfile(event: FormEvent) {
+    event.preventDefault();
+    setProfileMessage("");
+    const data = await api<{ user: NonNullable<typeof user> }>("/me", {
+      method: "PATCH",
+      body: JSON.stringify(profileForm)
+    });
+    if (token) setSession(token, data.user);
+    setEditingProfile(false);
+    setProfileMessage("Perfil atualizado com sucesso.");
   }
 
   const capturedProperties = useMemo(() => properties.filter((property) => property.broker?.id === user?.id), [properties, user?.id]);
@@ -83,19 +117,48 @@ export function BrokerDashboard() {
           <section className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
             <Card>
               <CardContent>
-                <div className="flex items-center gap-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-4">
                   <img src={avatar} alt={user?.name ?? "Corretor"} className="h-20 w-20 rounded-full border border-primary/30 object-cover" />
                   <div>
                     <p className="text-sm text-muted-foreground">Corretor vinculado</p>
                     <h2 className="text-2xl font-bold">{user?.name}</h2>
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
                   </div>
+                  </div>
+                  <Button type="button" variant="outline" className="gap-2" onClick={() => setEditingProfile((current) => !current)}>
+                    <UserPen className="h-4 w-4" />
+                    Alterar
+                  </Button>
                 </div>
                 <div className="mt-5 grid gap-3 text-sm">
                   <InfoRow label="Telefone" value={profile?.phone || "Nao informado"} />
                   <InfoRow label="CRECI" value={profile?.creci || "CRECI nao informado"} />
                   <InfoRow label="Vinculo" value={profile?.linkedAt ? `Vinculado em ${dateBR(profile.linkedAt)}` : "Data nao informada"} />
                 </div>
+                {profileMessage && <p className="mt-4 text-sm font-semibold text-primary">{profileMessage}</p>}
+                {editingProfile && (
+                  <form onSubmit={updateProfile} className="mt-5 space-y-3 border-t border-border pt-5">
+                    <Input placeholder="Nome" value={profileForm.name} onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })} required />
+                    <Input placeholder="Telefone" value={profileForm.phone} onChange={(event) => setProfileForm({ ...profileForm, phone: event.target.value })} required />
+                    <Input placeholder="CRECI (opcional)" value={profileForm.creci} onChange={(event) => setProfileForm({ ...profileForm, creci: event.target.value })} />
+                    <div>
+                      <p className="mb-2 text-sm font-semibold">Foto do perfil</p>
+                      <ImageUploader
+                        folder="brokers"
+                        value={profileForm.avatarUrl ? [profileForm.avatarUrl] : []}
+                        multiple={false}
+                        onChange={(urls) => setProfileForm({ ...profileForm, avatarUrl: urls[0] ?? "" })}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="submit">Salvar perfil</Button>
+                      <Button type="button" variant="outline" onClick={() => setEditingProfile(false)}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </CardContent>
             </Card>
 
@@ -137,7 +200,7 @@ export function BrokerDashboard() {
               <PlusCircle className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-bold">Enviar pedido de cadastro</h2>
             </div>
-            <PropertyForm submitLabel="Enviar pedido" imageFolder="property-requests" onSubmit={createRequest} />
+            <PropertyForm submitLabel="Enviar pedido" imageFolder="property-requests" allowFeatured={false} onSubmit={createRequest} />
           </CardContent>
         </Card>
       )}
@@ -244,7 +307,10 @@ function PropertyList({ title, properties, empty }: { title: string; properties:
                     <p className="mt-1 text-sm text-primary">{property.availableUnits.length} unidades disponiveis</p>
                   )}
                 </div>
-                <span className="rounded-full border border-primary/30 px-3 py-1 text-xs font-semibold text-primary">{property.status}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <MediaDownloadButton property={property} />
+                  <span className="rounded-full border border-primary/30 px-3 py-1 text-xs font-semibold text-primary">{property.status}</span>
+                </div>
               </div>
             </div>
           ))}
