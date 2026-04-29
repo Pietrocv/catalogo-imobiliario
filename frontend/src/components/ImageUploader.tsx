@@ -40,7 +40,7 @@ export function ImageUploader({ folder, value, onChange, inviteToken, multiple =
     <div className="space-y-3">
       <label className="inline-flex">
         <input className="sr-only" type="file" accept="image/*" multiple={multiple} onChange={handleFiles} disabled={uploading} />
-        <span className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-white px-4 text-sm font-semibold transition hover:bg-muted">
+        <span className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-[#17191c] px-4 text-sm font-semibold text-[#ECECEC] transition hover:bg-muted">
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
           {uploading ? "Enviando..." : multiple ? "Enviar imagens" : "Enviar imagem"}
         </span>
@@ -54,7 +54,7 @@ export function ImageUploader({ folder, value, onChange, inviteToken, multiple =
               <Button
                 type="button"
                 variant="ghost"
-                className="absolute right-1 top-1 h-8 w-8 bg-white/90 p-0"
+                className="absolute right-1 top-1 h-8 w-8 bg-[#111214]/90 p-0"
                 onClick={() => remove(url)}
                 title="Remover imagem"
               >

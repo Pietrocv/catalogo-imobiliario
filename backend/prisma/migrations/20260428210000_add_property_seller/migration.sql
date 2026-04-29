@@ -1,0 +1,7 @@
+ALTER TABLE "Property" ADD COLUMN "soldById" TEXT;
+ALTER TABLE "Property" ADD COLUMN "soldAt" TIMESTAMP(3);
+
+ALTER TABLE "Property"
+ADD CONSTRAINT "Property_soldById_fkey"
+FOREIGN KEY ("soldById") REFERENCES "User"("id")
+ON DELETE SET NULL ON UPDATE CASCADE;

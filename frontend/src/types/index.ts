@@ -40,15 +40,34 @@ export type Property = {
   city: PropertyCity;
   neighborhood: string;
   address: string;
+  mapUrl?: string | null;
   areaM2: number;
   bedrooms: number;
   bathrooms: number;
   parkingSpaces: number;
+  availableUnits: string[];
   acceptsFinancing: boolean;
   featured: boolean;
   images: { id: string; url: string }[];
   realEstate: RealEstate;
   broker?: User | null;
+  brokerId?: string | null;
+  soldBy?: User | null;
+  soldById?: string | null;
+  soldAt?: string | null;
+  units: PropertyUnit[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PropertyUnit = {
+  id: string;
+  label: string;
+  status: "DISPONIVEL" | "VENDIDO";
+  soldBy?: User | null;
+  soldById?: string | null;
+  soldByExternalName?: string | null;
+  soldAt?: string | null;
 };
 
 export type PropertyRequest = Omit<Property, "id" | "status" | "images" | "realEstate" | "broker"> & {

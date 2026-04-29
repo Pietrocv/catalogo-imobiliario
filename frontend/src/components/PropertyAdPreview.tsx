@@ -9,7 +9,7 @@ export function PropertyAdPreview({ draft }: { draft: PropertyFormDraft }) {
   const city = draft.city as PropertyCity;
 
   return (
-    <div className="sticky top-6 overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+    <div className="sticky top-6 overflow-hidden rounded-lg border border-[#D3AA53]/30 bg-[#17191c] shadow-lg shadow-black/20">
       <img src={image} alt="" className="h-56 w-full object-cover" />
       <div className="space-y-4 p-5">
         <div>
@@ -37,11 +37,21 @@ export function PropertyAdPreview({ draft }: { draft: PropertyFormDraft }) {
         <div className="flex flex-wrap gap-2 text-xs font-semibold">
           {draft.featured && <span className="rounded-md bg-muted px-2 py-1 text-primary">Destaque</span>}
           {draft.acceptsFinancing && <span className="rounded-md bg-muted px-2 py-1 text-primary">Aceita financiamento</span>}
+          {parseUnits(draft.availableUnits).length > 0 && (
+            <span className="rounded-md bg-muted px-2 py-1 text-primary">{parseUnits(draft.availableUnits).length} unidades disponíveis</span>
+          )}
           <span className="rounded-md bg-muted px-2 py-1 text-muted-foreground">{draft.status || "DISPONIVEL"}</span>
         </div>
       </div>
     </div>
   );
+}
+
+function parseUnits(value: string) {
+  return value
+    .split(",")
+    .map((unit) => unit.trim())
+    .filter(Boolean);
 }
 
 function PreviewItem({ icon, value, suffix }: { icon: React.ReactNode; value: string; suffix?: string }) {

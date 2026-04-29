@@ -19,12 +19,15 @@ const initialPreview: PropertyFormDraft = {
   city: "VALPARAISO",
   neighborhood: "",
   address: "",
+  mapUrl: "",
   areaM2: "",
   bedrooms: "2",
   bathrooms: "1",
   parkingSpaces: "1",
+  availableUnits: "",
   acceptsFinancing: true,
   featured: false,
+  soldById: "",
   images: []
 };
 
@@ -133,7 +136,7 @@ export function AdminDashboard() {
               <Building2 className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-bold">Cadastrar imóvel diretamente</h2>
             </div>
-            <PropertyForm submitLabel="Cadastrar imóvel" showStatus onDraftChange={setPreview} onSubmit={createProperty} />
+            <PropertyForm submitLabel="Cadastrar imóvel" showStatus brokerOptions={brokers} onDraftChange={setPreview} onSubmit={createProperty} />
           </CardContent>
         </Card>
 

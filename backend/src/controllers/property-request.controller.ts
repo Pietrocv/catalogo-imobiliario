@@ -112,15 +112,18 @@ export async function approvePropertyRequest(request: FastifyRequest<{ Params: {
           city: current.city,
           neighborhood: current.neighborhood,
           address: current.address,
+          mapUrl: current.mapUrl,
           areaM2: current.areaM2,
           bedrooms: current.bedrooms,
           bathrooms: current.bathrooms,
           parkingSpaces: current.parkingSpaces,
+          availableUnits: current.availableUnits,
           acceptsFinancing: current.acceptsFinancing,
           featured: current.featured,
           realEstateId: current.realEstateId,
           brokerId: current.brokerProfile.userId,
           sourceRequestId: current.id,
+          units: { create: current.availableUnits.map((label) => ({ label })) },
           images: { create: current.images.map((image) => ({ url: image.url })) }
         }
       });
@@ -168,7 +171,16 @@ function canAccessRequest(request: FastifyRequest, propertyRequest: any) {
 
 function withoutImages<T extends { images?: string[] }>(data: T) {
   const { images: _images, ...rest } = data;
-  return rest;
+  return normalizeRequestData(rest);
+}
+
+function normalizeRequestData(data: any) {
+  const normalized = { ...data };
+  if (normalized.mapUrl === "") normalized.mapUrl = null;
+  if (Array.isArray(normalized.availableUnits)) {
+    normalized.availableUnits = normalized.availableUnits.map((unit: string) => unit.trim()).filter(Boolean);
+  }
+  return normalized;
 }
 
 function formatRequest(propertyRequest: any) {

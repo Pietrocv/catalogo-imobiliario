@@ -44,6 +44,11 @@ enum PropertyRequestStatus {
   RECUSADO
 }
 
+enum PropertyUnitStatus {
+  DISPONIVEL
+  VENDIDO
+}
+
 model User {
   id             String         @id @default(uuid())
   name           String
@@ -55,6 +60,8 @@ model User {
   brokerProfile  BrokerProfile?
   createdInvites BrokerInvite[]
   properties     Property[]     @relation("BrokerProperties")
+  soldProperties Property[]     @relation("SoldProperties")
+  soldUnits      PropertyUnit[] @relation("SoldPropertyUnits")
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -113,21 +120,43 @@ model Property {
   city              PropertyCity
   neighborhood      String
   address           String
+  mapUrl            String?
   areaM2            Decimal          @db.Decimal(10, 2)
   bedrooms          Int
   bathrooms         Int
   parkingSpaces     Int
+  availableUnits    String[]         @default([])
   acceptsFinancing  Boolean          @default(false)
   featured          Boolean          @default(false)
   realEstateId      String
   realEstate        RealEstate       @relation(fields: [realEstateId], references: [id])
   brokerId          String?
   broker            User?            @relation("BrokerProperties", fields: [brokerId], references: [id])
+  soldById          String?
+  soldBy            User?            @relation("SoldProperties", fields: [soldById], references: [id])
+  soldAt            DateTime?
   sourceRequestId   String?          @unique
   sourceRequest     PropertyRequest? @relation(fields: [sourceRequestId], references: [id])
   images            PropertyImage[]
+  units             PropertyUnit[]
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+}
+
+model PropertyUnit {
+  id                 String             @id @default(uuid())
+  label              String
+  status             PropertyUnitStatus @default(DISPONIVEL)
+  propertyId         String
+  property           Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  soldById           String?
+  soldBy             User?              @relation("SoldPropertyUnits", fields: [soldById], references: [id])
+  soldByExternalName String?
+  soldAt             DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@unique([propertyId, label])
 }
 
 model PropertyImage {
@@ -150,10 +179,12 @@ model PropertyRequest {
   city             PropertyCity
   neighborhood     String
   address          String
+  mapUrl           String?
   areaM2           Decimal                @db.Decimal(10, 2)
   bedrooms         Int
   bathrooms        Int
   parkingSpaces    Int
+  availableUnits   String[]               @default([])
   acceptsFinancing Boolean                @default(false)
   featured         Boolean                @default(false)
   brokerProfileId  String

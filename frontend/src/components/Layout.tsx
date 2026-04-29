@@ -1,40 +1,85 @@
-import { LogOut, UserRound } from "lucide-react";
-import { Link, Outlet } from "react-router-dom";
+import type React from "react";
+import { LayoutDashboard, LogOut, UserRound } from "lucide-react";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import imperioLogo from "../assets/imperiologo.jpg";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "./ui/button";
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const avatarUrl = user?.brokerProfile?.avatarUrl || null;
+  const dashboardLink = user?.role === "ADMIN_IMOBILIARIA" ? "/admin" : user?.role === "CORRETOR" ? "/broker" : null;
+  const dashboardLabel = user?.role === "ADMIN_IMOBILIARIA" ? "Dashboard" : "Minha área";
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <Link to="/" className="flex items-center gap-3 text-lg font-bold">
-            <img src={imperioLogo} alt="Império Imóveis" className="h-11 w-11 rounded-full object-cover" />
-            <span>Império Imóveis</span>
+    <div className="min-h-screen bg-[#111214] text-[#ECECEC]">
+      <header className="sticky top-0 z-40 border-b border-[#D3AA53]/25 bg-[#111214]/95 shadow-lg shadow-black/20 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={imperioLogo} alt="Império Imóveis" className="h-12 w-12 rounded-full border border-[#D3AA53]/70 object-cover" />
+            <div>
+              <p className="text-lg font-bold leading-tight text-[#ECECEC]">Império Imóveis</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#D3AA53]">Catálogo imobiliário</p>
+            </div>
           </Link>
-          <nav className="flex items-center gap-2">
-            <Link to="/">Imóveis</Link>
-            {user?.role === "ADMIN_IMOBILIARIA" && <Link to="/admin">Admin</Link>}
-            {user?.role === "CORRETOR" && <Link to="/broker">Corretor</Link>}
+
+          <nav className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#ECECEC]">
+            <MenuLink to="/">Imóveis</MenuLink>
+            {dashboardLink && (
+              <MenuLink to={dashboardLink}>
+                <LayoutDashboard className="h-4 w-4" />
+                {dashboardLabel}
+              </MenuLink>
+            )}
+          </nav>
+
+          <div className="flex items-center gap-3">
             {user ? (
-              <Button variant="ghost" onClick={logout} title="Sair">
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <>
+                <div className="flex items-center gap-3 rounded-full border border-[#D3AA53]/30 bg-white/5 px-3 py-2">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={user.name} className="h-9 w-9 rounded-full object-cover" />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D3AA53] text-sm font-bold text-[#111214]">
+                      {user.name.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="max-w-36 truncate text-sm font-bold text-[#ECECEC]">{user.name}</p>
+                    <p className="text-xs text-[#D3AA53]">{user.role === "ADMIN_IMOBILIARIA" ? "Admin" : "Corretor"}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" className="text-[#ECECEC] hover:bg-[#D3AA53]/10 hover:text-[#D3AA53]" onClick={logout} title="Sair">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
             ) : (
-              <Link to="/login" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white">
+              <Link to="/login" className="inline-flex h-10 items-center gap-2 rounded-md bg-[#D3AA53] px-4 text-sm font-bold text-[#111214] transition hover:bg-[#B7873A]">
                 <UserRound className="h-4 w-4" />
                 Entrar
               </Link>
             )}
-          </nav>
+          </div>
         </div>
       </header>
       <main>
         <Outlet />
       </main>
     </div>
+  );
+}
+
+function MenuLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `inline-flex h-10 items-center gap-2 rounded-md px-3 transition ${
+          isActive ? "bg-[#D3AA53] text-[#111214]" : "text-[#ECECEC] hover:bg-[#D3AA53]/10 hover:text-[#D3AA53]"
+        }`
+      }
+    >
+      {children}
+    </NavLink>
   );
 }

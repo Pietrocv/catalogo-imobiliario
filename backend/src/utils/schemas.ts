@@ -7,6 +7,7 @@ export const purposeSchema = z.enum(["VENDA", "ALUGUEL"]);
 export const propertyStatusSchema = z.enum(["DISPONIVEL", "RESERVADO", "VENDIDO", "ALUGADO", "INATIVO"]);
 
 export const imageUrlsSchema = z.array(z.string().url()).default([]);
+export const availableUnitsSchema = z.array(z.string().trim().min(1)).default([]);
 
 export const registerSchema = z.object({
   name: z.string().min(2),
@@ -42,21 +43,25 @@ export const propertyPayloadSchema = z.object({
   city: citySchema,
   neighborhood: z.string().min(2),
   address: z.string().min(3),
+  mapUrl: z.string().url().optional().or(z.literal("")),
   areaM2: z.coerce.number().positive(),
   bedrooms: z.coerce.number().int().min(0),
   bathrooms: z.coerce.number().int().min(0),
   parkingSpaces: z.coerce.number().int().min(0),
+  availableUnits: availableUnitsSchema,
   acceptsFinancing: z.coerce.boolean().default(false),
   featured: z.coerce.boolean().default(false),
   realEstateId: z.string().uuid().optional(),
   brokerId: z.string().uuid().optional(),
+  soldById: z.string().uuid().optional().or(z.literal("")),
   images: imageUrlsSchema
 });
 
 export const propertyRequestPayloadSchema = propertyPayloadSchema.omit({
   status: true,
   realEstateId: true,
-  brokerId: true
+  brokerId: true,
+  soldById: true
 });
 
 export const propertyFiltersSchema = z.object({
@@ -81,4 +86,8 @@ export const propertyFiltersSchema = z.object({
 
 export const rejectRequestSchema = z.object({
   reason: z.string().min(3)
+});
+
+export const sellPropertyUnitSchema = z.object({
+  soldById: z.string().uuid().or(z.literal("EXTERNAL_PARTNER"))
 });

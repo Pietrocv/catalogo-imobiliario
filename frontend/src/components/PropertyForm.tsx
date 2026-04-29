@@ -14,6 +14,7 @@ type Props = {
   initialValues?: Partial<PropertyFormDraft>;
   resetOnSubmit?: boolean;
   onDraftChange?: (draft: PropertyFormDraft) => void;
+  brokerOptions?: { userId: string; name: string }[];
 };
 
 export type PropertyFormDraft = {
@@ -26,12 +27,15 @@ export type PropertyFormDraft = {
   city: string;
   neighborhood: string;
   address: string;
+  mapUrl: string;
   areaM2: string;
   bedrooms: string;
   bathrooms: string;
   parkingSpaces: string;
+  availableUnits: string;
   acceptsFinancing: boolean;
   featured: boolean;
+  soldById: string;
   images: string[];
 };
 
@@ -45,16 +49,19 @@ const initial: PropertyFormDraft = {
   city: "VALPARAISO",
   neighborhood: "",
   address: "",
+  mapUrl: "",
   areaM2: "",
   bedrooms: "2",
   bathrooms: "1",
   parkingSpaces: "1",
+  availableUnits: "",
   acceptsFinancing: true,
   featured: false,
+  soldById: "",
   images: [] as string[]
 };
 
-export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = "properties", initialValues, resetOnSubmit = true, onDraftChange }: Props) {
+export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = "properties", initialValues, resetOnSubmit = true, onDraftChange, brokerOptions = [] }: Props) {
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -81,6 +88,7 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
         bedrooms: Number(form.bedrooms),
         bathrooms: Number(form.bathrooms),
         parkingSpaces: Number(form.parkingSpaces),
+        availableUnits: parseUnits(form.availableUnits),
         images: form.images
       });
       if (resetOnSubmit) {
@@ -111,6 +119,7 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
       </Select>
       <Input placeholder="Bairro" value={form.neighborhood} onChange={(e) => setValue("neighborhood", e.target.value)} required />
       <Input placeholder="Endereço" value={form.address} onChange={(e) => setValue("address", e.target.value)} required />
+      <Input placeholder="URL do Google Maps (opcional)" value={form.mapUrl} onChange={(e) => setValue("mapUrl", e.target.value)} />
       <Input placeholder="Área em m²" type="number" value={form.areaM2} onChange={(e) => setValue("areaM2", e.target.value)} required />
       <Select value={form.type} onChange={(e) => setValue("type", e.target.value)}>
         <option value="NOVO">Novo</option>
@@ -130,12 +139,28 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
           <option value="INATIVO">Inativo</option>
         </Select>
       )}
+      {showStatus && form.status === "VENDIDO" && (
+        <Select value={form.soldById} onChange={(e) => setValue("soldById", e.target.value)}>
+          <option value="">Corretor que vendeu</option>
+          {brokerOptions.map((broker) => (
+            <option key={broker.userId} value={broker.userId}>
+              {broker.name}
+            </option>
+          ))}
+        </Select>
+      )}
       <div className="grid grid-cols-3 gap-3">
         <Input placeholder="Quartos" type="number" value={form.bedrooms} onChange={(e) => setValue("bedrooms", e.target.value)} />
         <Input placeholder="Banheiros" type="number" value={form.bathrooms} onChange={(e) => setValue("bathrooms", e.target.value)} />
         <Input placeholder="Vagas" type="number" value={form.parkingSpaces} onChange={(e) => setValue("parkingSpaces", e.target.value)} />
       </div>
-      <div className="flex items-center gap-5 rounded-md border border-border bg-white px-3">
+      <Input
+        className="md:col-span-2"
+        placeholder="Unidades disponíveis, separadas por vírgula. Ex: 01, 02, 03, 101, 102, 103"
+        value={form.availableUnits}
+        onChange={(e) => setValue("availableUnits", e.target.value)}
+      />
+      <div className="flex items-center gap-5 rounded-md border border-input bg-[#17191c] px-3 text-[#ECECEC]">
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.acceptsFinancing} onChange={(e) => setValue("acceptsFinancing", e.target.checked)} />
           Aceita financiamento
@@ -156,4 +181,11 @@ export function PropertyForm({ onSubmit, submitLabel, showStatus, imageFolder = 
       </div>
     </form>
   );
+}
+
+function parseUnits(value: string) {
+  return value
+    .split(",")
+    .map((unit) => unit.trim())
+    .filter(Boolean);
 }

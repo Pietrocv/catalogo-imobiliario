@@ -25,16 +25,16 @@ export function AdminProperties() {
     await refresh();
   }
 
-  async function inactivateProperty(id: string) {
-    const confirmed = window.confirm("Deseja inativar este imóvel? Ele deixará de aparecer no catálogo público.");
+  async function removeProperty(id: string) {
+    const confirmed = window.confirm("Deseja remover este imóvel? Ele deixará de aparecer no catálogo público.");
     if (!confirmed) return;
     setMessage("");
     try {
       await api(`/properties/${id}`, { method: "DELETE" });
-      setMessage("Imóvel inativado.");
+      setMessage("Imóvel removido.");
       await refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao inativar imóvel");
+      setMessage(error instanceof Error ? error.message : "Erro ao remover imóvel");
     }
   }
 
@@ -67,10 +67,20 @@ export function AdminProperties() {
                 <img src={image} alt={property.title} className="h-full min-h-48 w-full object-cover" />
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm font-semibold text-primary">{property.type} · {property.purpose} · {property.status}</p>
+                    <p className="text-sm font-semibold text-primary">
+                      {property.type} · {property.purpose} · {property.status}
+                    </p>
                     <h2 className="text-lg font-bold">{property.title}</h2>
-                    <p className="text-sm text-muted-foreground">{cityLabels[property.city]}, {property.neighborhood}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {cityLabels[property.city]}, {property.neighborhood}
+                    </p>
                     <p className="mt-2 text-xl font-bold">{money(property.price)}</p>
+                    {property.availableUnits?.length > 0 && (
+                      <p className="mt-1 text-sm text-primary">{property.availableUnits.length} unidades disponíveis</p>
+                    )}
+                    {property.status === "VENDIDO" && property.soldBy && (
+                      <p className="mt-1 text-sm text-muted-foreground">Vendido por {property.soldBy.name}</p>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -87,9 +97,9 @@ export function AdminProperties() {
                       <Edit className="h-4 w-4" />
                       Editar
                     </Link>
-                    <Button variant="outline" className="gap-2 text-red-700 hover:text-red-800" onClick={() => inactivateProperty(property.id)}>
+                    <Button variant="outline" className="gap-2 text-red-700 hover:text-red-800" onClick={() => removeProperty(property.id)}>
                       <Trash2 className="h-4 w-4" />
-                      Inativar
+                      Remover
                     </Button>
                   </div>
                 </CardContent>
