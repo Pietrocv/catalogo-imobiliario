@@ -1,7 +1,8 @@
-import { Building2, LogOut, UserRound } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
-import { Button } from "./ui/button";
+import imperioLogo from "../assets/imperiologo.jpg";
 import { useAuth } from "../contexts/AuthContext";
+import { Button } from "./ui/button";
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -10,9 +11,9 @@ export function Layout() {
     <div className="min-h-screen">
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <Link to="/" className="flex items-center gap-2 text-lg font-bold">
-            <Building2 className="h-6 w-6 text-primary" />
-            Catálogo Imobiliário
+          <Link to="/" className="flex items-center gap-3 text-lg font-bold">
+            <img src={imperioLogo} alt="Império Imóveis" className="h-11 w-11 rounded-full object-cover" />
+            <span>Império Imóveis</span>
           </Link>
           <nav className="flex items-center gap-2">
             <Link to="/">Imóveis</Link>

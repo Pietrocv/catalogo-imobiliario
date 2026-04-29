@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { PropertyCard } from "../components/PropertyCard";
+import { PropertyHeroCarousel } from "../components/PropertyHeroCarousel";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Select } from "../components/ui/select";
@@ -49,11 +50,7 @@ export function Home() {
             <h1 className="mt-2 max-w-3xl text-4xl font-bold tracking-normal md:text-5xl">Catálogo de imóveis no Entorno Sul de Brasília</h1>
             <p className="mt-4 max-w-2xl text-lg text-muted-foreground">Encontre casas, apartamentos e lançamentos em Valparaíso, Luziânia, Cidade Ocidental e Jardim Ingá.</p>
           </div>
-          <img
-            src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80"
-            alt="Fachada residencial moderna"
-            className="h-72 w-full rounded-lg object-cover"
-          />
+          <PropertyHeroCarousel properties={properties} />
         </div>
       </section>
 
